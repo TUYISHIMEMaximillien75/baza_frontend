@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Search, ShieldCheck, CheckCircle2, TrendingUp, Sparkles, ArrowRight } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { ShieldCheck, CheckCircle2, TrendingUp, Sparkles, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { CategoryCard } from '../components/common/CategoryCard';
 import { ListingCard } from '../components/common/ListingCard';
 import { Button } from '../components/ui/Button';
@@ -8,11 +8,9 @@ import { SectionHeader } from '../components/layout/SectionHeader';
 import { Skeleton } from '../components/feedback/Skeleton';
 import { useCategories } from '../hooks/useCategories';
 import { useFeaturedListings, useListings } from '../hooks/useListings';
+import { AiSearchBar } from '../components/ai/AiSearchBar';
 
 export const HomePage: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();
-
   const { data: categories = [], isLoading: catsLoading } = useCategories();
   const { data: featuredListings = [], isLoading: featuredLoading } = useFeaturedListings(4);
   const { data: recentData, isLoading: recentLoading } = useListings({
@@ -21,11 +19,6 @@ export const HomePage: React.FC = () => {
     sortOrder: 'DESC',
   });
   const recentListings = recentData?.items ?? [];
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate(searchQuery.trim() ? `/marketplace?search=${encodeURIComponent(searchQuery)}` : '/marketplace');
-  };
 
   return (
     <div className="space-y-12">
@@ -44,21 +37,10 @@ export const HomePage: React.FC = () => {
             Connect directly with verified owners, licensed real-estate brokers, and top vehicle dealers across Kigali and all Rwanda provinces.
           </p>
 
-          <form onSubmit={handleSearch} className="mt-8 flex flex-col sm:flex-row gap-2 bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/20">
-            <div className="flex-1 flex items-center bg-white rounded-baza px-3.5 py-2.5">
-              <Search className="w-4 h-4 text-baza-text-secondary mr-2 flex-shrink-0" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search houses in Gacuriro, Toyota RAV4, land plots..."
-                className="w-full text-xs sm:text-sm text-baza-text-primary placeholder:text-slate-400 focus:outline-none bg-transparent"
-              />
-            </div>
-            <Button type="submit" variant="primary" size="lg" leftIcon={<Search className="w-4 h-4" />}>
-              Search Marketplace
-            </Button>
-          </form>
+          {/* AI Search Bar */}
+          <div className="mt-8">
+            <AiSearchBar />
+          </div>
 
           <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-slate-800 text-xs">
             <div>
