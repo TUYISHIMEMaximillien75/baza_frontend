@@ -8,26 +8,33 @@ export interface AiSearchResult {
   price: number;
   currency: string;
   purpose: string;
+  status: string;
   category: string;
   categorySlug: string;
   location: string;
+  locationShort: string;
   coverImageUrl: string;
   isFeatured: boolean;
   isVerified: boolean;
+  ownerName: string;
   createdAt: string;
+  publishedAt: string | null;
 }
 
 export interface AiSearchResponse {
   query: string;
   aiExplanation: string;
+  appliedStrategy: string;
+  totalFound: number;
   parsedFilters: {
-    search?: string;
+    categorySlug?: string;
+    purpose?: string;
     province?: string;
     district?: string;
-    purpose?: string;
-    categorySlug?: string;
+    sector?: string;
     minPrice?: number;
     maxPrice?: number;
+    minRooms?: number;
   };
   results: AiSearchResult[];
 }
@@ -35,7 +42,7 @@ export interface AiSearchResponse {
 export const aiSearchService = {
   search: async (query: string): Promise<AiSearchResponse> => {
     const { data } = await apiClient.post('/search/ai', { query });
-    // Handle wrapped response from TransformInterceptor
+    // Handle NestJS TransformInterceptor wrapper
     return data?.data ?? data;
   },
 };
