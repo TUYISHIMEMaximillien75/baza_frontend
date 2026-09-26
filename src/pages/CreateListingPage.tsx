@@ -24,7 +24,7 @@ import { Textarea } from '../components/ui/Textarea';
 import { ImageUploader } from '../components/common/ImageUploader';
 import { useCategories } from '../hooks/useCategories';
 import listingsService from '../services/listingsService';
-import { getProvinces, getDistricts, getSectors, getCells } from '../data/rwandaLocations';
+import { getProvinces, getDistricts, getSectors } from '../data/rwandaLocations';
 
 const createListingSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -36,7 +36,6 @@ const createListingSchema = z.object({
   province: z.string().min(1, 'Please select a province'),
   district: z.string().min(1, 'Please select a district'),
   sector: z.string().optional(),
-  cell: z.string().optional(),
 });
 
 type CreateListingForm = z.infer<typeof createListingSchema>;
@@ -79,7 +78,6 @@ export const CreateListingPage: React.FC = () => {
       province: 'Kigali City',
       district: 'Gasabo',
       sector: 'Gacuriro / Kinyinya',
-      cell: 'Gacuriro',
     },
   });
 
@@ -89,7 +87,7 @@ export const CreateListingPage: React.FC = () => {
   const selectedDistrict = watch('district');
   const selectedSector = watch('sector');
 
-  // Dynamic location cascades (Provinces -> Districts -> Sectors -> Cells)
+  // Dynamic location cascades (Provinces -> Districts -> Sectors)
   const provinceOptions = useMemo(() => {
     return getProvinces().map((p) => ({ value: p, label: p }));
   }, []);
@@ -101,10 +99,6 @@ export const CreateListingPage: React.FC = () => {
   const availableSectors = useMemo(() => {
     return getSectors(selectedProvince, selectedDistrict);
   }, [selectedProvince, selectedDistrict]);
-
-  const availableCells = useMemo(() => {
-    return getCells(selectedProvince, selectedDistrict, selectedSector);
-  }, [selectedProvince, selectedDistrict, selectedSector]);
 
   // Handle cascading auto-resets when parent selection changes
   useEffect(() => {
@@ -230,10 +224,6 @@ export const CreateListingPage: React.FC = () => {
           ? uploadedImages[0]
           : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80');
 
-      const fullSectorDetails = data.cell
-        ? `${data.sector || ''} (${data.cell})`
-        : data.sector || 'Gacuriro';
-
       const created = await listingsService.create({
         title: data.title,
         description: data.description,
@@ -245,7 +235,7 @@ export const CreateListingPage: React.FC = () => {
         imageUrls: uploadedImages.length > 0 ? uploadedImages : [finalCoverUrl],
         province: data.province,
         district: data.district,
-        sector: fullSectorDetails,
+        sector: data.sector || 'Gacuriro',
       });
       navigate(`/listings/${created.slug}`);
     } catch (err: any) {
@@ -335,12 +325,12 @@ export const CreateListingPage: React.FC = () => {
               <MapPin className="w-4 h-4 text-baza-cyan" /> Location & Map Coordinates
             </h3>
             <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-              Rwanda Hierarchy (Province → District → Sector → Cell)
+              Rwanda Administrative Hierarchy (Province → District → Sector)
             </span>
           </div>
 
-          {/* Cascading Row 1: Province & District */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Cascading Row: Province, District, Sector */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Select
               label="Province *"
               options={[{ value: '', label: 'Select Province' }, ...provinceOptions]}
@@ -358,10 +348,7 @@ export const CreateListingPage: React.FC = () => {
               error={errors.district?.message}
               {...register('district')}
             />
-          </div>
 
-          {/* Cascading Row 2: Sector & Cell */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold text-baza-text-primary block mb-1.5">Sector (Umurenge)</label>
               {availableSectors.length > 0 ? (
@@ -381,30 +368,12 @@ export const CreateListingPage: React.FC = () => {
                 />
               )}
             </div>
-
-            <div>
-              <label className="text-xs font-bold text-baza-text-primary block mb-1.5">Cell (Akagali) / Neighborhood</label>
-              {availableCells.length > 0 ? (
-                <Select
-                  options={[
-                    { value: '', label: 'Select Cell' },
-                    ...availableCells.map((c) => ({ value: c, label: c })),
-                  ]}
-                  {...register('cell')}
-                />
-              ) : (
-                <Input
-                  placeholder="e.g. Kibagabaga, Rukiri II"
-                  {...register('cell')}
-                />
-              )}
-            </div>
           </div>
 
           {/* Map Coordinates & Current GPS Location Button */}
           <div className="pt-3 border-t border-slate-100 space-y-2">
             <label className="text-xs font-bold text-slate-700 block">
-              Map Coordinates (Lat & Long) or Exact Address
+              Map Coordinates (Lat & Long) or Specific Address
             </label>
             <div className="flex gap-2">
               <div className="flex-1">
@@ -433,7 +402,7 @@ export const CreateListingPage: React.FC = () => {
               </p>
             )}
             <p className="text-[11px] text-slate-500">
-              Selecting a <strong>Province</strong> filters Districts, which filters Sectors and Cells. You can also paste exact GPS coordinates (e.g. <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">-1.9441, 30.0619</code>) or click <strong>Pick Current Location</strong> to auto-fill GPS location.
+              Selecting a <strong>Province</strong> filters Districts, which filters Sectors. You can also paste exact GPS coordinates (e.g. <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">-1.9441, 30.0619</code>) or click <strong>Pick Current Location</strong> to auto-fill GPS location.
             </p>
           </div>
         </Card>
