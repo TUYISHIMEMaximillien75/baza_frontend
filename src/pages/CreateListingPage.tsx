@@ -320,14 +320,9 @@ export const CreateListingPage: React.FC = () => {
 
         {/* Location Card with Cascading Hierarchy & Coordinates */}
         <Card padding="md" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-baza-navy flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-baza-cyan" /> Location & Map Coordinates
-            </h3>
-            <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-              Rwanda Administrative Hierarchy (Province → District → Sector)
-            </span>
-          </div>
+          <h3 className="text-sm font-bold text-baza-navy flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-baza-cyan" /> Location & Map Coordinates
+          </h3>
 
           {/* Cascading Row: Province, District, Sector */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
