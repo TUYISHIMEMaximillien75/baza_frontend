@@ -120,7 +120,7 @@ export const RegisterPage: React.FC = () => {
 
       <div className="pt-4 border-t border-baza-border text-center text-xs text-baza-text-secondary">
         Already have an account?{' '}
-        <Link to="/login" className="font-bold text-baza-green hover:underline">
+        <Link to="/login" className="font-bold text-baza-navy hover:text-baza-cyan transition-colors">
           Sign in here
         </Link>
       </div>

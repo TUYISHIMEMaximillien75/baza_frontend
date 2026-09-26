@@ -88,7 +88,7 @@ export const LoginPage: React.FC = () => {
         />
 
         <div className="flex items-center justify-between text-xs">
-          <Link to="/forgot-password" className="text-baza-green font-semibold hover:underline">
+          <Link to="/forgot-password" className="text-baza-cyan font-semibold hover:underline">
             Forgot Password?
           </Link>
         </div>
@@ -100,7 +100,7 @@ export const LoginPage: React.FC = () => {
 
       <div className="pt-4 border-t border-baza-border text-center text-xs text-baza-text-secondary">
         Don't have an account?{' '}
-        <Link to="/register" className="font-bold text-baza-green hover:underline">
+        <Link to="/register" className="font-bold text-baza-navy hover:text-baza-cyan transition-colors">
           Register here
         </Link>
       </div>

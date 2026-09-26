@@ -38,17 +38,17 @@ export const DashboardPage: React.FC = () => {
           <p className="text-xs text-slate-300 mt-1">Manage your active property and vehicle listings on BAZA.</p>
         </div>
         <Link to="/listings/new">
-          <Button variant="primary" size="sm" leftIcon={<PlusCircle className="w-4 h-4" />}>
+          <Button variant="coral" size="sm" leftIcon={<PlusCircle className="w-4 h-4" />}>
             Create New Listing
           </Button>
         </Link>
       </div>
 
       {/* Verification Status Card */}
-      <Card padding="md" className="border-l-4 border-l-baza-green bg-emerald-50/20">
+      <Card padding="md" className="border-l-4 border-l-baza-cyan bg-cyan-50/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-baza-green-light flex items-center justify-center text-baza-green-dark">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(6,182,212,0.12)', color: '#06B6D4' }}>
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
@@ -62,7 +62,7 @@ export const DashboardPage: React.FC = () => {
               </p>
             </div>
           </div>
-          <Link to="/verification" className="text-xs font-bold text-baza-green hover:underline">
+          <Link to="/verification" className="text-xs font-bold text-baza-cyan hover:text-baza-navy transition-colors">
             Verification Details &rarr;
           </Link>
         </div>
@@ -86,7 +86,7 @@ export const DashboardPage: React.FC = () => {
       <Card padding="none">
         <div className="px-6 py-4 border-b border-baza-border flex items-center justify-between">
           <h3 className="text-sm font-bold text-baza-navy">My Recent Listings</h3>
-          <Link to="/my-listings" className="text-xs font-bold text-baza-green hover:underline">View All &rarr;</Link>
+          <Link to="/my-listings" className="text-xs font-bold text-baza-cyan hover:text-baza-navy transition-colors">View All &rarr;</Link>
         </div>
         <div className="overflow-x-auto">
           {listingsLoading ? (
@@ -96,7 +96,7 @@ export const DashboardPage: React.FC = () => {
           ) : (myListingsData?.items ?? []).length === 0 ? (
             <div className="py-12 text-center text-xs text-baza-text-secondary">
               You haven't posted any listings yet.{' '}
-              <Link to="/listings/new" className="text-baza-green font-bold hover:underline">Create your first listing</Link>
+              <Link to="/listings/new" className="text-baza-cyan font-bold hover:text-baza-navy transition-colors">Create your first listing</Link>
             </div>
           ) : (
             <table className="w-full text-left text-xs">
@@ -121,7 +121,7 @@ export const DashboardPage: React.FC = () => {
                       <StatusBadge status={listing.status} />
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link to={`/listings/${listing.slug}`} className="text-baza-green font-bold hover:underline">View</Link>
+                      <Link to={`/listings/${listing.slug}`} className="text-baza-cyan font-bold hover:text-baza-navy transition-colors">View</Link>
                     </td>
                   </tr>
                 ))}

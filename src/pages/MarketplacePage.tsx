@@ -94,7 +94,7 @@ export const MarketplacePage: React.FC = () => {
           onClick={() => setShowFilters(!showFilters)}
           leftIcon={<SlidersHorizontal className="w-4 h-4" />}
         >
-          Filters {hasActiveFilters && <span className="ml-1 w-2 h-2 rounded-full bg-baza-green inline-block" />}
+          Filters {hasActiveFilters && <span className="ml-1 w-2 h-2 rounded-full bg-baza-coral inline-block" />}
         </Button>
         {hasActiveFilters && (
           <Button variant="ghost" size="md" onClick={clearFilters} leftIcon={<X className="w-4 h-4" />}>
@@ -112,7 +112,7 @@ export const MarketplacePage: React.FC = () => {
 
       {/* Filter Panel */}
       {showFilters && (
-        <div className="p-4 bg-white border border-baza-border rounded-baza shadow-baza flex flex-wrap gap-6 items-start">
+        <div className="p-4 bg-white border border-baza-border border-l-2 rounded-baza shadow-baza flex flex-wrap gap-6 items-start" style={{ borderLeftColor: '#06B6D4' }}>
           {/* Purpose */}
           <div>
             <span className="text-xs font-bold text-baza-text-secondary block mb-2">Listing Purpose</span>
@@ -142,7 +142,7 @@ export const MarketplacePage: React.FC = () => {
                 placeholder="Min"
                 value={minPrice}
                 onChange={(e) => updateParam({ minPrice: e.target.value })}
-                className="w-28 border border-baza-border rounded-baza px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-baza-green/30"
+                className="w-28 border border-baza-border rounded-baza px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-baza-navy/30 focus:border-baza-navy"
               />
               <span className="text-xs text-slate-400">—</span>
               <input
@@ -150,7 +150,7 @@ export const MarketplacePage: React.FC = () => {
                 placeholder="Max"
                 value={maxPrice}
                 onChange={(e) => updateParam({ maxPrice: e.target.value })}
-                className="w-28 border border-baza-border rounded-baza px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-baza-green/30"
+                className="w-28 border border-baza-border rounded-baza px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-baza-navy/30 focus:border-baza-navy"
               />
             </div>
           </div>
