@@ -21,7 +21,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full space-y-1.5">
         {label && (
-          <label htmlFor={selectId} className="block text-xs font-semibold text-baza-text-primary">
+          <label htmlFor={selectId} className="block text-xs font-bold text-baza-text-primary tracking-wide uppercase">
             {label}
           </label>
         )}
@@ -30,8 +30,12 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             id={selectId}
             ref={ref}
             className={clsx(
-              'w-full appearance-none px-3.5 py-2.5 bg-white border text-sm rounded-baza pr-10 transition-colors focus:outline-none focus:ring-2 focus:ring-baza-green focus:border-transparent disabled:bg-slate-100 disabled:cursor-not-allowed',
-              error ? 'border-baza-error text-baza-error' : 'border-baza-border text-baza-text-primary',
+              'w-full appearance-none px-3.5 py-2.5 bg-white border text-sm rounded-baza pr-10 transition-all duration-150',
+              'focus:outline-none focus:ring-2 focus:ring-baza-navy/30 focus:border-baza-navy',
+              'disabled:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400',
+              error
+                ? 'border-baza-error text-baza-error focus:ring-baza-error/25'
+                : 'border-baza-border text-baza-text-primary',
               className,
             )}
             {...props}
@@ -47,7 +51,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               </option>
             ))}
           </select>
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-baza-text-secondary pointer-events-none">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
             <ChevronDown className="w-4 h-4" />
           </div>
         </div>

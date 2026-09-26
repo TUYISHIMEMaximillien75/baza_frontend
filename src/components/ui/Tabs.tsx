@@ -25,10 +25,10 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange, fullWidth
             key={tab.id}
             onClick={() => onChange(tab.id)}
             className={clsx(
-              'flex items-center gap-2 py-3 px-4 text-xs font-semibold border-b-2 transition-all whitespace-nowrap focus:outline-none',
+              'flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap focus:outline-none',
               isActive
-                ? 'border-baza-green text-baza-green-dark bg-baza-green-light/20'
-                : 'border-transparent text-baza-text-secondary hover:text-baza-text-primary hover:border-slate-300',
+                ? 'border-baza-navy text-baza-navy bg-baza-navy/5'
+                : 'border-transparent text-baza-text-secondary hover:text-baza-navy hover:border-baza-navy/30',
               fullWidth && 'flex-1 justify-center',
             )}
           >
@@ -37,8 +37,8 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange, fullWidth
             {tab.count !== undefined && (
               <span
                 className={clsx(
-                  'px-1.5 py-0.5 rounded-full text-[10px]',
-                  isActive ? 'bg-baza-green text-white' : 'bg-slate-100 text-baza-text-secondary',
+                  'px-1.5 py-0.5 rounded-md text-[10px] font-bold',
+                  isActive ? 'bg-baza-navy text-white' : 'bg-slate-100 text-baza-text-secondary',
                 )}
               >
                 {tab.count}

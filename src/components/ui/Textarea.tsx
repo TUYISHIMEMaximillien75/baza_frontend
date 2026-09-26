@@ -14,7 +14,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="w-full space-y-1.5">
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-semibold text-baza-text-primary">
+          <label htmlFor={inputId} className="block text-xs font-bold text-baza-text-primary tracking-wide uppercase">
             {label}
           </label>
         )}
@@ -23,8 +23,12 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           rows={rows}
           className={clsx(
-            'w-full px-3.5 py-2.5 bg-white border text-sm rounded-baza transition-colors placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-baza-green focus:border-transparent disabled:bg-slate-100 disabled:cursor-not-allowed resize-y',
-            error ? 'border-baza-error text-baza-error' : 'border-baza-border text-baza-text-primary',
+            'w-full px-3.5 py-2.5 bg-white border text-sm rounded-baza transition-all duration-150 placeholder:text-slate-400 resize-y',
+            'focus:outline-none focus:ring-2 focus:ring-baza-navy/30 focus:border-baza-navy',
+            'disabled:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400',
+            error
+              ? 'border-baza-error text-baza-error focus:ring-baza-error/25'
+              : 'border-baza-border text-baza-text-primary',
             className,
           )}
           {...props}

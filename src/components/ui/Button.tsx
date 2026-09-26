@@ -3,7 +3,7 @@ import { clsx } from 'clsx';
 import { Loader2 } from 'lucide-react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'coral';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
@@ -21,16 +21,38 @@ export const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   className,
   disabled,
+  style,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-baza transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  const base =
+    'inline-flex items-center justify-center font-bold rounded-baza transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]';
 
-  const variants = {
-    primary: 'bg-baza-green hover:bg-baza-green-dark text-white focus:ring-baza-green',
-    secondary: 'bg-baza-navy hover:bg-baza-text-primary text-white focus:ring-baza-navy',
-    outline: 'border border-baza-border bg-white text-baza-text-primary hover:bg-slate-50 focus:ring-baza-navy',
-    ghost: 'text-baza-text-primary hover:bg-slate-100 focus:ring-slate-300',
-    danger: 'bg-baza-error hover:bg-red-700 text-white focus:ring-baza-error',
+  // Variant styles — navy is the primary, coral is for CTAs, green for success
+  const variants: Record<string, { className: string; style?: React.CSSProperties }> = {
+    primary: {
+      className: 'bg-baza-navy text-white hover:bg-[#0E3A5A] focus:ring-baza-navy shadow-navy',
+    },
+    coral: {
+      className: 'text-white focus:ring-baza-coral',
+      style: {
+        background: 'linear-gradient(135deg, #F97316 0%, #EF4444 100%)',
+        boxShadow: '0 2px 10px rgba(249,115,22,0.35)',
+      },
+    },
+    secondary: {
+      className: 'bg-baza-cyan text-white hover:bg-baza-teal focus:ring-baza-cyan shadow-cyan',
+    },
+    outline: {
+      className:
+        'border border-baza-border bg-white text-baza-text-primary hover:border-baza-navy hover:text-baza-navy focus:ring-baza-navy',
+    },
+    ghost: {
+      className:
+        'text-baza-text-primary hover:bg-slate-100 focus:ring-slate-300',
+    },
+    danger: {
+      className: 'bg-baza-error text-white hover:bg-red-700 focus:ring-baza-error',
+    },
   };
 
   const sizes = {
@@ -39,15 +61,12 @@ export const Button: React.FC<ButtonProps> = ({
     lg: 'px-6 py-3 text-base gap-2.5',
   };
 
+  const v = variants[variant];
+
   return (
     <button
-      className={clsx(
-        baseStyles,
-        variants[variant],
-        sizes[size],
-        fullWidth && 'w-full',
-        className,
-      )}
+      className={clsx(base, v.className, sizes[size], fullWidth && 'w-full', className)}
+      style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif', ...v.style, ...style }}
       disabled={disabled || isLoading}
       {...props}
     >

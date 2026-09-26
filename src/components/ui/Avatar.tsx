@@ -29,17 +29,19 @@ export const Avatar: React.FC<AvatarProps> = ({ src, name, size = 'md', classNam
   return (
     <div
       className={clsx(
-        'relative inline-flex items-center justify-center rounded-full bg-slate-200 text-baza-navy font-bold overflow-hidden border border-baza-border flex-shrink-0',
+        'relative inline-flex items-center justify-center rounded-full overflow-hidden flex-shrink-0',
+        'border-2 border-white shadow-md',
         sizes[size],
         className,
       )}
+      style={{ background: 'linear-gradient(135deg, #0A2A42 0%, #06B6D4 100%)' }}
     >
       {src ? (
         <img src={src} alt={name || 'User avatar'} className="w-full h-full object-cover" />
       ) : initials ? (
-        <span>{initials}</span>
+        <span className="font-bold text-white">{initials}</span>
       ) : (
-        <UserIcon className="w-1/2 h-1/2 text-baza-text-secondary" />
+        <UserIcon className="w-1/2 h-1/2 text-white/80" />
       )}
     </div>
   );
