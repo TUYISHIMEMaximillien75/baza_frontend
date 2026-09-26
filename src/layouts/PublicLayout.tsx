@@ -2,69 +2,149 @@ import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { DesktopHeader } from '../components/navigation/DesktopHeader';
 import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
-import { ShieldCheck, Heart, MapPin, Phone, Mail } from 'lucide-react';
+import { ShieldCheck, MapPin, Phone, Mail, ArrowRight } from 'lucide-react';
 
 export const PublicLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-baza-bg pb-16 md:pb-0">
       <DesktopHeader />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7">
         <Outlet />
       </main>
 
-      {/* Footer */}
-      <footer className="bg-baza-navy text-white mt-12 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-baza bg-baza-green flex items-center justify-center text-white font-extrabold text-lg">
-                  B
-                </div>
-                <span className="text-xl font-extrabold tracking-tight text-white">
-                  BAZA<span className="text-baza-green">.rw</span>
+      {/* ── Footer ────────────────────────────────────────────── */}
+      <footer style={{ background: '#0A2A42' }}>
+        {/* Top coral accent */}
+        <div style={{ height: '2px', background: 'linear-gradient(90deg, #F97316 0%, #06B6D4 100%)' }} />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+
+            {/* Brand column */}
+            <div className="md:col-span-1">
+              <div className="flex items-center gap-2.5 mb-4">
+                <img
+                  src="/logo.png"
+                  alt="BAZA"
+                  className="w-10 h-10 rounded-lg object-contain bg-white p-0.5"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                <span
+                  className="text-xl font-black text-white tracking-tight"
+                  style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif', letterSpacing: '-0.03em' }}
+                >
+                  BAZA<span style={{ color: '#06B6D4' }}>.rw</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                Rwanda’s trusted mobile-first marketplace to buy, sell, and rent houses, apartments, land, and vehicles.
+              <p className="text-sm leading-relaxed mb-5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                Rwanda's trusted marketplace to buy, sell, and rent houses, apartments, land, and vehicles.
               </p>
-              <div className="flex items-center gap-2 text-xs text-baza-green font-semibold">
-                <ShieldCheck className="w-4 h-4" /> Verified Sellers & Brokers
+              <div
+                className="inline-flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-lg"
+                style={{ background: 'rgba(6,182,212,0.12)', color: '#06B6D4', border: '1px solid rgba(6,182,212,0.2)' }}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Verified Sellers &amp; Brokers
               </div>
             </div>
 
+            {/* Categories */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3">Categories</h4>
-              <ul className="space-y-2 text-xs text-slate-400">
-                <li><Link to="/marketplace?category=houses" className="hover:text-baza-green">Houses for Sale & Rent</Link></li>
-                <li><Link to="/marketplace?category=apartments" className="hover:text-baza-green">Apartments in Kigali</Link></li>
-                <li><Link to="/marketplace?category=land" className="hover:text-baza-green">Residential & Farm Land</Link></li>
-                <li><Link to="/marketplace?category=vehicle" className="hover:text-baza-green">Cars & SUVs</Link></li>
+              <h4
+                className="text-xs font-bold uppercase tracking-widest mb-4"
+                style={{ color: 'rgba(255,255,255,0.35)' }}
+              >
+                Browse
+              </h4>
+              <ul className="space-y-2.5">
+                {[
+                  { label: 'Houses for Sale & Rent',   href: '/marketplace?category=houses' },
+                  { label: 'Apartments in Kigali',     href: '/marketplace?category=apartments' },
+                  { label: 'Residential & Farm Land',  href: '/marketplace?category=residential-land' },
+                  { label: 'Cars & SUVs',              href: '/marketplace?category=vehicle' },
+                ].map(({ label, href }) => (
+                  <li key={href}>
+                    <Link
+                      to={href}
+                      className="text-sm transition-colors flex items-center gap-1.5 group"
+                      style={{ color: 'rgba(255,255,255,0.5)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#06B6D4')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
+                    >
+                      <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity -ml-1" />
+                      {label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
+            {/* Account */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3">Account & Admin</h4>
-              <ul className="space-y-2 text-xs text-slate-400">
-                <li><Link to="/dashboard" className="hover:text-baza-green">User Dashboard</Link></li>
-                <li><Link to="/verification" className="hover:text-baza-green">Verification Centre</Link></li>
-                <li><Link to="/admin" className="hover:text-baza-green">Admin Console</Link></li>
-                <li><Link to="/alerts" className="hover:text-baza-green">Notifications</Link></li>
+              <h4
+                className="text-xs font-bold uppercase tracking-widest mb-4"
+                style={{ color: 'rgba(255,255,255,0.35)' }}
+              >
+                Account
+              </h4>
+              <ul className="space-y-2.5">
+                {[
+                  { label: 'User Dashboard',     href: '/dashboard' },
+                  { label: 'Verification Centre', href: '/verification' },
+                  { label: 'Admin Console',       href: '/admin' },
+                  { label: 'Notifications',       href: '/alerts' },
+                ].map(({ label, href }) => (
+                  <li key={href}>
+                    <Link
+                      to={href}
+                      className="text-sm transition-colors flex items-center gap-1.5 group"
+                      style={{ color: 'rgba(255,255,255,0.5)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#06B6D4')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
+                    >
+                      <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity -ml-1" />
+                      {label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
+            {/* Contact */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3">Contact Support</h4>
-              <ul className="space-y-2 text-xs text-slate-400">
-                <li className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-baza-green" /> Kigali, Gasabo, Rwanda</li>
-                <li className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-baza-green" /> +250 788 000 000</li>
-                <li className="flex items-center gap-2"><Mail className="w-3.5 h-3.5 text-baza-green" /> support@baza.rw</li>
+              <h4
+                className="text-xs font-bold uppercase tracking-widest mb-4"
+                style={{ color: 'rgba(255,255,255,0.35)' }}
+              >
+                Contact
+              </h4>
+              <ul className="space-y-3">
+                {[
+                  { icon: <MapPin className="w-4 h-4 flex-shrink-0" />, text: 'Kigali, Gasabo, Rwanda' },
+                  { icon: <Phone className="w-4 h-4 flex-shrink-0" />, text: '+250 788 000 000' },
+                  { icon: <Mail className="w-4 h-4 flex-shrink-0" />,  text: 'support@baza.rw' },
+                ].map(({ icon, text }) => (
+                  <li
+                    key={text}
+                    className="flex items-center gap-2.5 text-sm"
+                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                  >
+                    <span style={{ color: '#06B6D4' }}>{icon}</span>
+                    {text}
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500">
+          {/* Bottom bar */}
+          <div
+            className="mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }}
+          >
             <p>&copy; {new Date().getFullYear()} BAZA Marketplace. All rights reserved.</p>
+            <p style={{ color: 'rgba(255,255,255,0.2)' }}>Built in Rwanda 🇷🇼</p>
           </div>
         </div>
       </footer>
