@@ -62,7 +62,7 @@ export const PublicLayout: React.FC = () => {
                   { label: 'Houses for Sale & Rent',   href: '/marketplace?category=houses' },
                   { label: 'Apartments in Kigali',     href: '/marketplace?category=apartments' },
                   { label: 'Residential & Farm Land',  href: '/marketplace?category=residential-land' },
-                  { label: 'Cars & SUVs',              href: '/marketplace?category=vehicle' },
+                  { label: 'Vehicles & Transport',     href: '/marketplace?category=vehicle' },
                 ].map(({ label, href }) => (
                   <li key={href}>
                     <Link

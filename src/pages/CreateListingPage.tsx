@@ -3,7 +3,19 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Building, MapPin, DollarSign, Image as ImageIcon, FileText, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  PlusCircle,
+  Building,
+  MapPin,
+  DollarSign,
+  Image as ImageIcon,
+  FileText,
+  AlertCircle,
+  Navigation,
+  Loader2,
+  Plus,
+  Link as LinkIcon,
+} from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -23,16 +35,20 @@ const createListingSchema = z.object({
   coverImageUrl: z.string().optional(),
   province: z.string().optional(),
   district: z.string().optional(),
-  sector: z.string().optional(),
+  sector: z.string().optional(), // Used for sector name or coordinates (lat, long)
 });
 
 type CreateListingForm = z.infer<typeof createListingSchema>;
 
-const SAMPLE_IMAGES = [
-  { label: 'Modern Villa', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Apartment', url: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Land Plot', url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80' },
-  { label: 'SUV / Vehicle', url: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80' },
+// Keywords to filter out specific sub-types or private names (e.g. SUV, sedan) from category list
+const EXCLUDED_CATEGORY_KEYWORDS = ['suv', 'sedan', 'hatchback', 'truck', 'residential land', 'agricultural land'];
+
+// Clean default categories if API response is empty
+const DEFAULT_CATEGORIES = [
+  { id: 'property', name: 'Property' },
+  { id: 'land', name: 'Land' },
+  { id: 'vehicle', name: 'Vehicle' },
+  { id: 'commercial', name: 'Commercial' },
 ];
 
 export const CreateListingPage: React.FC = () => {
@@ -42,7 +58,12 @@ export const CreateListingPage: React.FC = () => {
 
   // State for uploaded image URLs
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [showPresets, setShowPresets] = useState(false);
+  const [customUrlInput, setCustomUrlInput] = useState('');
+  const [urlError, setUrlError] = useState<string | null>(null);
+
+  // Geolocation state
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
 
   const {
     register,
@@ -56,12 +77,42 @@ export const CreateListingPage: React.FC = () => {
       purpose: 'SALE',
       province: 'Kigali City',
       district: 'Gasabo',
-      sector: 'Gacuriro',
+      sector: '',
     },
   });
 
   const selectedPurpose = watch('purpose');
   const selectedCoverUrl = watch('coverImageUrl');
+
+  // Filter and deduplicate categories
+  const categoryOptions = React.useMemo(() => {
+    if (categories && categories.length > 0) {
+      const seen = new Set<string>();
+      const filtered = categories.filter((c) => {
+        const lower = c.name.toLowerCase();
+        if (EXCLUDED_CATEGORY_KEYWORDS.some((kw) => lower.includes(kw))) {
+          return false;
+        }
+        if (seen.has(lower)) {
+          return false;
+        }
+        seen.add(lower);
+        return true;
+      });
+
+      if (filtered.length > 0) {
+        return filtered.map((c) => ({
+          value: c.id,
+          label: c.name,
+        }));
+      }
+    }
+
+    return DEFAULT_CATEGORIES.map((c) => ({
+      value: c.id,
+      label: c.name,
+    }));
+  }, [categories]);
 
   const handleImagesChange = (newImages: string[]) => {
     setUploadedImages(newImages);
@@ -74,11 +125,72 @@ export const CreateListingPage: React.FC = () => {
     setValue('coverImageUrl', url);
   };
 
+  // Add custom image URL manually
+  const handleAddCustomUrl = () => {
+    setUrlError(null);
+    const trimmed = customUrlInput.trim();
+    if (!trimmed) return;
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      setUrlError('Please enter a valid URL starting with http:// or https://');
+      return;
+    }
+
+    if (uploadedImages.length >= 10) {
+      setUrlError('Maximum limit of 10 images reached.');
+      return;
+    }
+
+    const updated = [...uploadedImages, trimmed];
+    setUploadedImages(updated);
+    if (!selectedCoverUrl) {
+      setValue('coverImageUrl', trimmed);
+    }
+    setCustomUrlInput('');
+  };
+
+  // Handle Pick Current Geolocation
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setGeoError('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    setIsGettingLocation(true);
+    setGeoError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setIsGettingLocation(false);
+        const lat = position.coords.latitude.toFixed(6);
+        const lng = position.coords.longitude.toFixed(6);
+        const formattedCoords = `${lat}, ${lng}`;
+        setValue('sector', formattedCoords);
+      },
+      (err) => {
+        setIsGettingLocation(false);
+        let msg = 'Unable to retrieve your current location.';
+        if (err.code === err.PERMISSION_DENIED) {
+          msg = 'Location permission denied. You can manually type your address or coordinates.';
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          msg = 'Location information unavailable.';
+        } else if (err.code === err.TIMEOUT) {
+          msg = 'Location request timed out. Please try again or type manually.';
+        }
+        setGeoError(msg);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
+
   const onSubmit = async (data: CreateListingForm) => {
     setApiError(null);
     try {
       // Determine final cover image URL
-      const finalCoverUrl = data.coverImageUrl || (uploadedImages.length > 0 ? uploadedImages[0] : SAMPLE_IMAGES[0].url);
+      const finalCoverUrl =
+        data.coverImageUrl ||
+        (uploadedImages.length > 0
+          ? uploadedImages[0]
+          : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80');
 
       const created = await listingsService.create({
         title: data.title,
@@ -99,11 +211,6 @@ export const CreateListingPage: React.FC = () => {
     }
   };
 
-  const categoryOptions = categories.map((c) => ({
-    value: c.id,
-    label: c.name,
-  }));
-
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <PageHeader
@@ -122,7 +229,7 @@ export const CreateListingPage: React.FC = () => {
         {/* Basic Info Card */}
         <Card padding="md" className="space-y-4">
           <h3 className="text-sm font-bold text-baza-navy flex items-center gap-2">
-            <Building className="w-4 h-4 text-baza-green" /> Basic Information
+            <Building className="w-4 h-4 text-baza-cyan" /> Basic Information
           </h3>
 
           <Input
@@ -179,26 +286,61 @@ export const CreateListingPage: React.FC = () => {
           />
         </Card>
 
-        {/* Location Card */}
+        {/* Location & Map Coordinates Card */}
         <Card padding="md" className="space-y-4">
           <h3 className="text-sm font-bold text-baza-navy flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-baza-green" /> Location Details
+            <MapPin className="w-4 h-4 text-baza-cyan" /> Location & Map Coordinates
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Input label="Province" placeholder="Kigali City" {...register('province')} />
-            <Input label="District" placeholder="Gasabo" {...register('district')} />
-            <Input label="Sector" placeholder="Gacuriro" {...register('sector')} />
+          <div>
+            <label className="text-xs font-bold text-baza-text-primary block mb-1.5">
+              Sector / Address or Map Coordinates (Lat, Long)
+            </label>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Input
+                  placeholder="e.g. Gacuriro, Kigali or -1.9441, 30.0619"
+                  error={errors.sector?.message}
+                  {...register('sector')}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={handleGetCurrentLocation}
+                isLoading={isGettingLocation}
+                leftIcon={<Navigation className="w-4 h-4 text-baza-cyan" />}
+                className="whitespace-nowrap flex-shrink-0"
+                title="Get current GPS location coordinates"
+              >
+                Pick Current Location
+              </Button>
+            </div>
+            {geoError && (
+              <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                {geoError}
+              </p>
+            )}
+            <p className="mt-1.5 text-[11px] text-slate-500">
+              Enter a sector name, street address, or paste map coordinates (e.g. <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">-1.9441, 30.0619</code>), or click <strong>Pick Current Location</strong> to auto-fill GPS coordinates.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+            <Input label="Province (Optional)" placeholder="Kigali City" {...register('province')} />
+            <Input label="District (Optional)" placeholder="Gasabo" {...register('district')} />
           </div>
         </Card>
 
-        {/* Property & Vehicle Photos / Upload Section */}
+        {/* Property & Vehicle Photos Upload Section */}
         <Card padding="md" className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-baza-navy flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-baza-green" /> Property & Vehicle Photos
+              <ImageIcon className="w-4 h-4 text-baza-cyan" /> Photos (Multiple Upload Supported)
             </h3>
-            <span className="text-xs font-semibold text-slate-500">Direct Upload Supported</span>
+            <span className="text-xs font-semibold text-slate-500">Max 10 Images</span>
           </div>
 
           {/* Main Direct File Upload Component */}
@@ -210,50 +352,34 @@ export const CreateListingPage: React.FC = () => {
             maxFiles={10}
           />
 
-          {/* Preset / Custom URL option toggle */}
-          <div className="pt-2 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setShowPresets(!showPresets)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-baza-navy hover:text-baza-green transition-colors"
-            >
-              {showPresets ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              <span>Or use external image URL / sample presets</span>
-            </button>
-
-            {showPresets && (
-              <div className="mt-3 space-y-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <Input
-                  label="Direct Image Link (URL)"
-                  placeholder="https://..."
-                  error={errors.coverImageUrl?.message}
-                  {...register('coverImageUrl')}
-                />
-
-                <div>
-                  <span className="text-[11px] font-semibold text-baza-text-secondary block mb-2">Preset Sample Photos:</span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {SAMPLE_IMAGES.map((img) => (
-                      <button
-                        key={img.label}
-                        type="button"
-                        onClick={() => {
-                          setValue('coverImageUrl', img.url);
-                          if (!uploadedImages.includes(img.url)) {
-                            setUploadedImages((prev) => [...prev, img.url]);
-                          }
-                        }}
-                        className={`relative rounded-baza overflow-hidden border-2 text-left transition-all ${
-                          selectedCoverUrl === img.url ? 'border-baza-green ring-2 ring-baza-green/30' : 'border-baza-border hover:border-slate-300'
-                        }`}
-                      >
-                        <img src={img.url} alt={img.label} className="w-full h-16 object-cover" />
-                        <span className="block p-1 text-[10px] font-bold bg-slate-900/80 text-white truncate">{img.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+          {/* Direct Image Link / Manual URL Input */}
+          <div className="pt-3 border-t border-slate-100 space-y-2">
+            <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <LinkIcon className="w-3.5 h-3.5 text-baza-cyan" /> Add Image by URL
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="https://images.unsplash.com/photo-..."
+                value={customUrlInput}
+                onChange={(e) => setCustomUrlInput(e.target.value)}
+                className="flex-1 px-3 py-1.5 text-xs rounded-baza border border-baza-border focus:border-baza-cyan focus:outline-none"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAddCustomUrl}
+                leftIcon={<Plus className="w-3.5 h-3.5" />}
+              >
+                Add Image
+              </Button>
+            </div>
+            {urlError && (
+              <p className="text-xs text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                {urlError}
+              </p>
             )}
           </div>
         </Card>
@@ -261,7 +387,7 @@ export const CreateListingPage: React.FC = () => {
         {/* Description Card */}
         <Card padding="md" className="space-y-4">
           <h3 className="text-sm font-bold text-baza-navy flex items-center gap-2">
-            <FileText className="w-4 h-4 text-baza-green" /> Detailed Description
+            <FileText className="w-4 h-4 text-baza-cyan" /> Detailed Description
           </h3>
 
           <Textarea

@@ -109,8 +109,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         onClick={() => fileInputRef.current?.click()}
         className={`relative border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
           dragActive
-            ? 'border-baza-green bg-baza-green/10 scale-[1.01]'
-            : 'border-slate-300 hover:border-baza-green/60 hover:bg-slate-50/80'
+            ? 'border-baza-cyan bg-baza-cyan/10 scale-[1.01]'
+            : 'border-slate-300 hover:border-baza-cyan/60 hover:bg-slate-50/80'
         }`}
       >
         <input
@@ -123,9 +123,9 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         />
 
         <div className="flex flex-col items-center justify-center space-y-2">
-          <div className="w-12 h-12 rounded-full bg-emerald-50 text-baza-green flex items-center justify-center shadow-sm">
+          <div className="w-12 h-12 rounded-full bg-cyan-50 text-baza-cyan flex items-center justify-center shadow-sm">
             {isUploading ? (
-              <Loader2 className="w-6 h-6 animate-spin text-baza-green" />
+              <Loader2 className="w-6 h-6 animate-spin text-baza-cyan" />
             ) : (
               <Upload className="w-6 h-6" />
             )}
@@ -144,7 +144,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             type="button"
             className="mt-2 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-sm"
           >
-            <ImageIcon className="w-3.5 h-3.5 text-baza-green" /> Select Files from Computer
+            <ImageIcon className="w-3.5 h-3.5 text-baza-cyan" /> Select Files from Computer
           </button>
         </div>
       </div>
@@ -175,14 +175,14 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                 <div
                   key={`${url}-${index}`}
                   className={`group relative rounded-xl overflow-hidden border-2 bg-slate-100 transition-all ${
-                    isCover ? 'border-baza-green ring-2 ring-baza-green/20' : 'border-slate-200 hover:border-slate-400'
+                    isCover ? 'border-baza-cyan ring-2 ring-baza-cyan/20' : 'border-slate-200 hover:border-slate-400'
                   }`}
                 >
                   <img src={url} alt={`Property ${index + 1}`} className="w-full h-24 object-cover" />
 
                   {/* Cover Badge */}
                   {isCover && (
-                    <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-baza-green text-white text-[10px] font-black shadow-md">
+                    <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-baza-cyan text-white text-[10px] font-black shadow-md">
                       <CheckCircle className="w-3 h-3" /> Cover
                     </span>
                   )}
