@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,7 +12,6 @@ import {
   FileText,
   AlertCircle,
   Navigation,
-  Loader2,
   Plus,
   Link as LinkIcon,
 } from 'lucide-react';
@@ -25,6 +24,7 @@ import { Textarea } from '../components/ui/Textarea';
 import { ImageUploader } from '../components/common/ImageUploader';
 import { useCategories } from '../hooks/useCategories';
 import listingsService from '../services/listingsService';
+import { getProvinces, getDistricts, getSectors, getCells } from '../data/rwandaLocations';
 
 const createListingSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -33,9 +33,10 @@ const createListingSchema = z.object({
   purpose: z.enum(['SALE', 'RENT']),
   categoryId: z.string().min(1, 'Please select a category'),
   coverImageUrl: z.string().optional(),
-  province: z.string().optional(),
-  district: z.string().optional(),
-  sector: z.string().optional(), // Used for sector name or coordinates (lat, long)
+  province: z.string().min(1, 'Please select a province'),
+  district: z.string().min(1, 'Please select a district'),
+  sector: z.string().optional(),
+  cell: z.string().optional(),
 });
 
 type CreateListingForm = z.infer<typeof createListingSchema>;
@@ -77,15 +78,53 @@ export const CreateListingPage: React.FC = () => {
       purpose: 'SALE',
       province: 'Kigali City',
       district: 'Gasabo',
-      sector: '',
+      sector: 'Gacuriro / Kinyinya',
+      cell: 'Gacuriro',
     },
   });
 
   const selectedPurpose = watch('purpose');
   const selectedCoverUrl = watch('coverImageUrl');
+  const selectedProvince = watch('province');
+  const selectedDistrict = watch('district');
+  const selectedSector = watch('sector');
+
+  // Dynamic location cascades (Provinces -> Districts -> Sectors -> Cells)
+  const provinceOptions = useMemo(() => {
+    return getProvinces().map((p) => ({ value: p, label: p }));
+  }, []);
+
+  const availableDistricts = useMemo(() => {
+    return getDistricts(selectedProvince);
+  }, [selectedProvince]);
+
+  const availableSectors = useMemo(() => {
+    return getSectors(selectedProvince, selectedDistrict);
+  }, [selectedProvince, selectedDistrict]);
+
+  const availableCells = useMemo(() => {
+    return getCells(selectedProvince, selectedDistrict, selectedSector);
+  }, [selectedProvince, selectedDistrict, selectedSector]);
+
+  // Handle cascading auto-resets when parent selection changes
+  useEffect(() => {
+    if (selectedProvince && availableDistricts.length > 0) {
+      if (!availableDistricts.includes(selectedDistrict || '')) {
+        setValue('district', availableDistricts[0] || '');
+      }
+    }
+  }, [selectedProvince, availableDistricts, selectedDistrict, setValue]);
+
+  useEffect(() => {
+    if (selectedDistrict && availableSectors.length > 0) {
+      if (!availableSectors.includes(selectedSector || '')) {
+        setValue('sector', availableSectors[0] || '');
+      }
+    }
+  }, [selectedDistrict, availableSectors, selectedSector, setValue]);
 
   // Filter and deduplicate categories
-  const categoryOptions = React.useMemo(() => {
+  const categoryOptions = useMemo(() => {
     if (categories && categories.length > 0) {
       const seen = new Set<string>();
       const filtered = categories.filter((c) => {
@@ -185,12 +224,15 @@ export const CreateListingPage: React.FC = () => {
   const onSubmit = async (data: CreateListingForm) => {
     setApiError(null);
     try {
-      // Determine final cover image URL
       const finalCoverUrl =
         data.coverImageUrl ||
         (uploadedImages.length > 0
           ? uploadedImages[0]
           : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80');
+
+      const fullSectorDetails = data.cell
+        ? `${data.sector || ''} (${data.cell})`
+        : data.sector || 'Gacuriro';
 
       const created = await listingsService.create({
         title: data.title,
@@ -201,9 +243,9 @@ export const CreateListingPage: React.FC = () => {
         categoryId: data.categoryId,
         coverImageUrl: finalCoverUrl,
         imageUrls: uploadedImages.length > 0 ? uploadedImages : [finalCoverUrl],
-        province: data.province || 'Kigali City',
-        district: data.district || 'Gasabo',
-        sector: data.sector || 'Gacuriro',
+        province: data.province,
+        district: data.district,
+        sector: fullSectorDetails,
       });
       navigate(`/listings/${created.slug}`);
     } catch (err: any) {
@@ -286,21 +328,88 @@ export const CreateListingPage: React.FC = () => {
           />
         </Card>
 
-        {/* Location & Map Coordinates Card */}
+        {/* Location Card with Cascading Hierarchy & Coordinates */}
         <Card padding="md" className="space-y-4">
-          <h3 className="text-sm font-bold text-baza-navy flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-baza-cyan" /> Location & Map Coordinates
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-baza-navy flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-baza-cyan" /> Location & Map Coordinates
+            </h3>
+            <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+              Rwanda Hierarchy (Province → District → Sector → Cell)
+            </span>
+          </div>
 
-          <div>
-            <label className="text-xs font-bold text-baza-text-primary block mb-1.5">
-              Sector / Address or Map Coordinates (Lat, Long)
+          {/* Cascading Row 1: Province & District */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Select
+              label="Province *"
+              options={[{ value: '', label: 'Select Province' }, ...provinceOptions]}
+              error={errors.province?.message}
+              {...register('province')}
+            />
+
+            <Select
+              label="District *"
+              disabled={!selectedProvince}
+              options={[
+                { value: '', label: !selectedProvince ? 'Select Province first' : 'Select District' },
+                ...availableDistricts.map((d) => ({ value: d, label: d })),
+              ]}
+              error={errors.district?.message}
+              {...register('district')}
+            />
+          </div>
+
+          {/* Cascading Row 2: Sector & Cell */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-bold text-baza-text-primary block mb-1.5">Sector (Umurenge)</label>
+              {availableSectors.length > 0 ? (
+                <Select
+                  options={[
+                    { value: '', label: 'Select Sector' },
+                    ...availableSectors.map((s) => ({ value: s, label: s })),
+                  ]}
+                  error={errors.sector?.message}
+                  {...register('sector')}
+                />
+              ) : (
+                <Input
+                  placeholder="e.g. Gacuriro, Remera"
+                  error={errors.sector?.message}
+                  {...register('sector')}
+                />
+              )}
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-baza-text-primary block mb-1.5">Cell (Akagali) / Neighborhood</label>
+              {availableCells.length > 0 ? (
+                <Select
+                  options={[
+                    { value: '', label: 'Select Cell' },
+                    ...availableCells.map((c) => ({ value: c, label: c })),
+                  ]}
+                  {...register('cell')}
+                />
+              ) : (
+                <Input
+                  placeholder="e.g. Kibagabaga, Rukiri II"
+                  {...register('cell')}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Map Coordinates & Current GPS Location Button */}
+          <div className="pt-3 border-t border-slate-100 space-y-2">
+            <label className="text-xs font-bold text-slate-700 block">
+              Map Coordinates (Lat & Long) or Exact Address
             </label>
             <div className="flex gap-2">
               <div className="flex-1">
                 <Input
-                  placeholder="e.g. Gacuriro, Kigali or -1.9441, 30.0619"
-                  error={errors.sector?.message}
+                  placeholder="e.g. -1.9441, 30.0619 or Near Kimironko Market"
                   {...register('sector')}
                 />
               </div>
@@ -312,7 +421,7 @@ export const CreateListingPage: React.FC = () => {
                 isLoading={isGettingLocation}
                 leftIcon={<Navigation className="w-4 h-4 text-baza-cyan" />}
                 className="whitespace-nowrap flex-shrink-0"
-                title="Get current GPS location coordinates"
+                title="Get current GPS coordinates"
               >
                 Pick Current Location
               </Button>
@@ -323,14 +432,9 @@ export const CreateListingPage: React.FC = () => {
                 {geoError}
               </p>
             )}
-            <p className="mt-1.5 text-[11px] text-slate-500">
-              Enter a sector name, street address, or paste map coordinates (e.g. <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">-1.9441, 30.0619</code>), or click <strong>Pick Current Location</strong> to auto-fill GPS coordinates.
+            <p className="text-[11px] text-slate-500">
+              Selecting a <strong>Province</strong> filters Districts, which filters Sectors and Cells. You can also paste exact GPS coordinates (e.g. <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">-1.9441, 30.0619</code>) or click <strong>Pick Current Location</strong> to auto-fill GPS location.
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
-            <Input label="Province (Optional)" placeholder="Kigali City" {...register('province')} />
-            <Input label="District (Optional)" placeholder="Gasabo" {...register('district')} />
           </div>
         </Card>
 

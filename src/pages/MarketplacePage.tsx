@@ -13,26 +13,28 @@ import { useCategories } from '../hooks/useCategories';
 import { useListings } from '../hooks/useListings';
 import { useDebounce } from '../hooks/useDebounce';
 import type { ListingFilters } from '../services/listingsService';
+import { getProvinces, getDistricts } from '../data/rwandaLocations';
 
 export const MarketplacePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
 
-  // Derive all filter values directly from URL — this is the single source of truth.
-  // Clicking nav header links changes the URL → searchParams updates → page re-renders with correct filters.
+  // Derive all filter values directly from URL — single source of truth
   const activeTab = searchParams.get('category') ?? 'all';
   const search = searchParams.get('search') ?? '';
   const purposeFilter = (searchParams.get('purpose') as 'ALL' | 'SALE' | 'RENT') ?? 'ALL';
   const minPrice = searchParams.get('minPrice') ?? '';
   const maxPrice = searchParams.get('maxPrice') ?? '';
+  const province = searchParams.get('province') ?? '';
+  const district = searchParams.get('district') ?? '';
   const page = Number(searchParams.get('page') ?? '1');
 
-  // Debounce search so we don't fire an API call on every keystroke
+  // Debounce search
   const debouncedSearch = useDebounce(search, 350);
 
   const { data: categories = [], isLoading: catsLoading } = useCategories();
 
-  // Helper to update a single filter in the URL
+  // Helper to update filter params in URL
   const updateParam = (updates: Record<string, string | null>) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -43,12 +45,12 @@ export const MarketplacePage: React.FC = () => {
           next.set(key, value);
         }
       });
-      next.delete('page'); // reset to page 1 on any filter change
+      next.delete('page'); // reset to page 1
       return next;
     });
   };
 
-  // Build filter object for the API query
+  // Build filter object for API query
   const filters: ListingFilters = {
     page,
     limit: 12,
@@ -57,18 +59,23 @@ export const MarketplacePage: React.FC = () => {
     ...(purposeFilter !== 'ALL' && { purpose: purposeFilter }),
     ...(minPrice && { minPrice: Number(minPrice) }),
     ...(maxPrice && { maxPrice: Number(maxPrice) }),
+    ...(province && { province }),
+    ...(district && { district }),
   };
 
   const { data, isLoading, isFetching } = useListings(filters);
   const listings = data?.items ?? [];
   const meta = data?.meta;
 
+  const availableDistricts = province ? getDistricts(province) : [];
+
   const tabs = [
     { id: 'all', label: 'All Categories' },
     ...(catsLoading ? [] : categories.map((c) => ({ id: c.slug, label: c.name }))),
   ];
 
-  const hasActiveFilters = activeTab !== 'all' || purposeFilter !== 'ALL' || debouncedSearch || minPrice || maxPrice;
+  const hasActiveFilters =
+    activeTab !== 'all' || purposeFilter !== 'ALL' || debouncedSearch || minPrice || maxPrice || province || district;
 
   const clearFilters = () => {
     setSearchParams({});
@@ -112,11 +119,11 @@ export const MarketplacePage: React.FC = () => {
 
       {/* Filter Panel */}
       {showFilters && (
-        <div className="p-4 bg-white border border-baza-border border-l-2 rounded-baza shadow-baza flex flex-wrap gap-6 items-start" style={{ borderLeftColor: '#06B6D4' }}>
+        <div className="p-4 bg-white border border-baza-border border-l-2 rounded-baza shadow-baza flex flex-wrap gap-6 items-center" style={{ borderLeftColor: '#06B6D4' }}>
           {/* Purpose */}
           <div>
-            <span className="text-xs font-bold text-baza-text-secondary block mb-2">Listing Purpose</span>
-            <div className="flex gap-2">
+            <span className="text-xs font-bold text-baza-text-secondary block mb-1.5">Listing Purpose</span>
+            <div className="flex gap-1.5">
               {(['ALL', 'SALE', 'RENT'] as const).map((p) => (
                 <button
                   key={p}
@@ -133,16 +140,51 @@ export const MarketplacePage: React.FC = () => {
             </div>
           </div>
 
+          {/* Location Cascades */}
+          <div>
+            <span className="text-xs font-bold text-baza-text-secondary block mb-1.5">Province</span>
+            <select
+              value={province}
+              onChange={(e) => updateParam({ province: e.target.value, district: null })}
+              className="px-3 py-1.5 text-xs rounded-baza border border-baza-border bg-white focus:outline-none focus:ring-2 focus:ring-baza-navy/30"
+            >
+              <option value="">All Provinces</option>
+              {getProvinces().map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {province && (
+            <div>
+              <span className="text-xs font-bold text-baza-text-secondary block mb-1.5">District</span>
+              <select
+                value={district}
+                onChange={(e) => updateParam({ district: e.target.value })}
+                className="px-3 py-1.5 text-xs rounded-baza border border-baza-border bg-white focus:outline-none focus:ring-2 focus:ring-baza-navy/30"
+              >
+                <option value="">All Districts</option>
+                {availableDistricts.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Price Range */}
           <div>
-            <span className="text-xs font-bold text-baza-text-secondary block mb-2">Price Range (RWF)</span>
+            <span className="text-xs font-bold text-baza-text-secondary block mb-1.5">Price Range (RWF)</span>
             <div className="flex items-center gap-2">
               <input
                 type="number"
                 placeholder="Min"
                 value={minPrice}
                 onChange={(e) => updateParam({ minPrice: e.target.value })}
-                className="w-28 border border-baza-border rounded-baza px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-baza-navy/30 focus:border-baza-navy"
+                className="w-24 border border-baza-border rounded-baza px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-baza-navy/30 focus:border-baza-navy"
               />
               <span className="text-xs text-slate-400">—</span>
               <input
@@ -150,13 +192,13 @@ export const MarketplacePage: React.FC = () => {
                 placeholder="Max"
                 value={maxPrice}
                 onChange={(e) => updateParam({ maxPrice: e.target.value })}
-                className="w-28 border border-baza-border rounded-baza px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-baza-navy/30 focus:border-baza-navy"
+                className="w-24 border border-baza-border rounded-baza px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-baza-navy/30 focus:border-baza-navy"
               />
             </div>
           </div>
 
-          <div className="ml-auto flex items-end">
-            <button onClick={clearFilters} className="text-xs font-semibold text-baza-error hover:underline">
+          <div className="ml-auto flex items-center">
+            <button onClick={clearFilters} className="text-xs font-semibold text-baza-coral hover:underline">
               Reset Filters
             </button>
           </div>
@@ -191,7 +233,13 @@ export const MarketplacePage: React.FC = () => {
               <Pagination
                 currentPage={meta.currentPage}
                 totalPages={meta.totalPages}
-                onPageChange={(p) => setSearchParams((prev) => { const next = new URLSearchParams(prev); next.set('page', String(p)); return next; })}
+                onPageChange={(p) =>
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.set('page', String(p));
+                    return next;
+                  })
+                }
               />
             </div>
           )}
@@ -199,13 +247,11 @@ export const MarketplacePage: React.FC = () => {
       ) : (
         <EmptyState
           title="No listings found"
-          description="Try broadening your search terms or clearing active category filters."
-          actionLabel="Clear Filters"
+          description="Try adjusting your search criteria or clear active filters to see more listings."
+          actionLabel="Clear All Filters"
           onAction={clearFilters}
         />
       )}
     </div>
   );
 };
-
-
