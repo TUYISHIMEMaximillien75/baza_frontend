@@ -51,7 +51,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ listingId, listingTitle, on
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-baza-border">
           <div className="flex items-center gap-2">
-            <Phone className="w-4 h-4 text-baza-green" />
+            <Phone className="w-4 h-4 text-baza-cyan" />
             <h2 className="text-sm font-bold text-baza-navy">Contact Seller</h2>
           </div>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-slate-100 transition-colors">
@@ -61,8 +61,8 @@ const ContactModal: React.FC<ContactModalProps> = ({ listingId, listingTitle, on
 
         {done ? (
           <div className="p-8 text-center">
-            <div className="w-12 h-12 rounded-full bg-baza-green-light flex items-center justify-center mx-auto mb-3">
-              <Send className="w-5 h-5 text-baza-green-dark" />
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(6,182,212,0.12)', color: '#06B6D4' }}>
+              <Send className="w-5 h-5" />
             </div>
             <h3 className="text-sm font-bold text-baza-navy mb-1">Message Sent!</h3>
             <p className="text-xs text-baza-text-secondary">The seller will receive your contact details and get back to you shortly.</p>
@@ -78,7 +78,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ listingId, listingTitle, on
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full border border-baza-border rounded-baza px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-baza-green/30"
+                  className="w-full border border-baza-border rounded-baza px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-baza-navy/30 focus:border-baza-navy"
                   placeholder="Your name"
                 />
               </div>
@@ -88,7 +88,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ listingId, listingTitle, on
                   required
                   value={form.phoneNumber}
                   onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
-                  className="w-full border border-baza-border rounded-baza px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-baza-green/30"
+                  className="w-full border border-baza-border rounded-baza px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-baza-navy/30 focus:border-baza-navy"
                   placeholder="+250 788 ..."
                 />
               </div>
@@ -160,7 +160,7 @@ const VisitModal: React.FC<VisitModalProps> = ({ listingId, listingTitle, onClos
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-baza-border">
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-baza-green" />
+            <Calendar className="w-4 h-4 text-baza-cyan" />
             <h2 className="text-sm font-bold text-baza-navy">Request Site Visit</h2>
           </div>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-slate-100 transition-colors">
@@ -170,8 +170,8 @@ const VisitModal: React.FC<VisitModalProps> = ({ listingId, listingTitle, onClos
 
         {done ? (
           <div className="p-8 text-center">
-            <div className="w-12 h-12 rounded-full bg-baza-green-light flex items-center justify-center mx-auto mb-3">
-              <Calendar className="w-5 h-5 text-baza-green-dark" />
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(6,182,212,0.12)', color: '#06B6D4' }}>
+              <Calendar className="w-5 h-5" />
             </div>
             <h3 className="text-sm font-bold text-baza-navy mb-1">Visit Request Sent!</h3>
             <p className="text-xs text-baza-text-secondary">The seller will confirm your preferred date and time. Check your alerts for updates.</p>
@@ -189,7 +189,7 @@ const VisitModal: React.FC<VisitModalProps> = ({ listingId, listingTitle, onClos
                   min={today}
                   value={form.preferredDate}
                   onChange={(e) => setForm({ ...form, preferredDate: e.target.value })}
-                  className="w-full border border-baza-border rounded-baza px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-baza-green/30"
+                  className="w-full border border-baza-border rounded-baza px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-baza-navy/30 focus:border-baza-navy bg-white"
                 />
               </div>
               <div>
@@ -197,7 +197,7 @@ const VisitModal: React.FC<VisitModalProps> = ({ listingId, listingTitle, onClos
                 <select
                   value={form.preferredTime}
                   onChange={(e) => setForm({ ...form, preferredTime: e.target.value })}
-                  className="w-full border border-baza-border rounded-baza px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-baza-green/30 bg-white"
+                  className="w-full border border-baza-border rounded-baza px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-baza-navy/30 focus:border-baza-navy bg-white"
                 >
                   {['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'].map((t) => (
                     <option key={t}>{t}</option>
@@ -320,7 +320,7 @@ export const ListingDetailPage: React.FC = () => {
                   <div className="w-full h-full flex items-center justify-center text-slate-500 text-sm">No image available</div>
                 )}
                 <div className="absolute top-4 left-4 flex gap-2">
-                  <Badge variant={listing.purpose === 'SALE' ? 'green' : 'navy'}>
+                  <Badge variant={listing.purpose === 'SALE' ? 'coral' : 'navy'}>
                     For {listing.purpose === 'SALE' ? 'Sale' : 'Rent'}
                   </Badge>
                   {listing.isVerified && <VerificationBadge type="VERIFIED_LISTING" />}
@@ -335,7 +335,7 @@ export const ListingDetailPage: React.FC = () => {
                       key={idx}
                       onClick={() => setActiveImageIndex(idx)}
                       className={`relative w-20 h-14 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all ${
-                        activeImageIndex === idx ? 'border-baza-green ring-2 ring-baza-green/30 scale-105' : 'border-slate-200 opacity-70 hover:opacity-100'
+                        activeImageIndex === idx ? 'border-baza-cyan ring-2 ring-baza-cyan/30 scale-105' : 'border-slate-200 opacity-70 hover:opacity-100'
                       }`}
                     >
                       <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
@@ -345,12 +345,12 @@ export const ListingDetailPage: React.FC = () => {
               )}
 
               <div className="p-6">
-                <div className="flex items-center gap-2 text-xs font-semibold text-baza-green-dark uppercase tracking-wider mb-2">
+                <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest mb-2" style={{ color: '#06B6D4' }}>
                   {listing.category}
                 </div>
                 <h1 className="text-xl sm:text-2xl font-black text-baza-navy leading-tight">{listing.title}</h1>
                 <div className="flex items-center gap-2 text-xs text-baza-text-secondary mt-2">
-                  <MapPin className="w-4 h-4 text-baza-green" />
+                  <MapPin className="w-4 h-4 text-baza-cyan" />
                   <span>{listing.location}</span>
                   {listing.createdAt && (
                     <>
@@ -362,7 +362,7 @@ export const ListingDetailPage: React.FC = () => {
 
                 <div className="mt-4 pt-4 border-t border-baza-border flex items-center justify-between">
                   <div>
-                    <span className="text-2xl sm:text-3xl font-black text-baza-navy">{formattedPrice}</span>
+                    <span className="text-2xl sm:text-3xl font-black" style={{ color: '#F97316' }}>{formattedPrice}</span>
                     {listing.purpose === 'RENT' && <span className="text-xs text-baza-text-secondary"> / month</span>}
                   </div>
                   {isAuthenticated && (
@@ -406,7 +406,7 @@ export const ListingDetailPage: React.FC = () => {
 
               <div className="pt-4 border-t border-baza-border space-y-2">
                 <Button
-                  variant="primary"
+                  variant="coral"
                   fullWidth
                   leftIcon={<Phone className="w-4 h-4" />}
                   onClick={() => setShowContact(true)}
@@ -424,7 +424,7 @@ export const ListingDetailPage: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-1.5 text-[11px] text-slate-400 justify-center">
-                <ShieldCheck className="w-3.5 h-3.5 text-baza-green" />
+                <ShieldCheck className="w-3.5 h-3.5 text-baza-cyan" />
                 Your enquiry is handled securely by BAZA
               </div>
             </div>
