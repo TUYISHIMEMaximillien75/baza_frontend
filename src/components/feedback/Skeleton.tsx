@@ -8,14 +8,14 @@ export interface SkeletonProps {
 
 export const Skeleton: React.FC<SkeletonProps> = ({ className, variant = 'rectangular' }) => {
   const variants = {
-    text: 'h-4 w-full rounded',
-    rectangular: 'w-full h-32 rounded-baza',
-    circular: 'w-10 h-10 rounded-full',
+    text:        'h-4 w-full rounded',
+    rectangular: 'w-full h-32 rounded-baza-lg',
+    circular:    'w-10 h-10 rounded-full flex-shrink-0',
   };
 
   return (
     <div
-      className={clsx('bg-slate-200 animate-pulse', variants[variant], className)}
+      className={clsx('skeleton-shimmer', variants[variant], className)}
     />
   );
 };
