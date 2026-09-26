@@ -3,13 +3,14 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Building, MapPin, DollarSign, Image as ImageIcon, FileText, AlertCircle, Sparkles } from 'lucide-react';
+import { PlusCircle, Building, MapPin, DollarSign, Image as ImageIcon, FileText, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Select } from '../components/ui/Select';
 import { Textarea } from '../components/ui/Textarea';
+import { ImageUploader } from '../components/common/ImageUploader';
 import { useCategories } from '../hooks/useCategories';
 import listingsService from '../services/listingsService';
 
@@ -39,6 +40,10 @@ export const CreateListingPage: React.FC = () => {
   const { data: categories = [], isLoading: catsLoading } = useCategories();
   const [apiError, setApiError] = useState<string | null>(null);
 
+  // State for uploaded image URLs
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [showPresets, setShowPresets] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -52,16 +57,29 @@ export const CreateListingPage: React.FC = () => {
       province: 'Kigali City',
       district: 'Gasabo',
       sector: 'Gacuriro',
-      coverImageUrl: SAMPLE_IMAGES[0].url,
     },
   });
 
   const selectedPurpose = watch('purpose');
-  const selectedImageUrl = watch('coverImageUrl');
+  const selectedCoverUrl = watch('coverImageUrl');
+
+  const handleImagesChange = (newImages: string[]) => {
+    setUploadedImages(newImages);
+    if (newImages.length > 0 && !selectedCoverUrl) {
+      setValue('coverImageUrl', newImages[0]);
+    }
+  };
+
+  const handleCoverChange = (url: string) => {
+    setValue('coverImageUrl', url);
+  };
 
   const onSubmit = async (data: CreateListingForm) => {
     setApiError(null);
     try {
+      // Determine final cover image URL
+      const finalCoverUrl = data.coverImageUrl || (uploadedImages.length > 0 ? uploadedImages[0] : SAMPLE_IMAGES[0].url);
+
       const created = await listingsService.create({
         title: data.title,
         description: data.description,
@@ -69,7 +87,8 @@ export const CreateListingPage: React.FC = () => {
         currency: 'RWF',
         purpose: data.purpose,
         categoryId: data.categoryId,
-        coverImageUrl: data.coverImageUrl || SAMPLE_IMAGES[0].url,
+        coverImageUrl: finalCoverUrl,
+        imageUrls: uploadedImages.length > 0 ? uploadedImages : [finalCoverUrl],
         province: data.province || 'Kigali City',
         district: data.district || 'Gasabo',
         sector: data.sector || 'Gacuriro',
@@ -173,36 +192,69 @@ export const CreateListingPage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Cover Image & Presets */}
+        {/* Property & Vehicle Photos / Upload Section */}
         <Card padding="md" className="space-y-4">
-          <h3 className="text-sm font-bold text-baza-navy flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-baza-green" /> Cover Image URL
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-baza-navy flex items-center gap-2">
+              <ImageIcon className="w-4 h-4 text-baza-green" /> Property & Vehicle Photos
+            </h3>
+            <span className="text-xs font-semibold text-slate-500">Direct Upload Supported</span>
+          </div>
 
-          <Input
-            label="Image Link (URL)"
-            placeholder="https://..."
-            error={errors.coverImageUrl?.message}
-            {...register('coverImageUrl')}
+          {/* Main Direct File Upload Component */}
+          <ImageUploader
+            images={uploadedImages}
+            onChange={handleImagesChange}
+            coverImageUrl={selectedCoverUrl}
+            onCoverChange={handleCoverChange}
+            maxFiles={10}
           />
 
-          <div>
-            <span className="text-[11px] font-semibold text-baza-text-secondary block mb-2">Or select a preset sample photo:</span>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {SAMPLE_IMAGES.map((img) => (
-                <button
-                  key={img.label}
-                  type="button"
-                  onClick={() => setValue('coverImageUrl', img.url)}
-                  className={`relative rounded-baza overflow-hidden border-2 text-left transition-all ${
-                    selectedImageUrl === img.url ? 'border-baza-green ring-2 ring-baza-green/30' : 'border-baza-border hover:border-slate-300'
-                  }`}
-                >
-                  <img src={img.url} alt={img.label} className="w-full h-16 object-cover" />
-                  <span className="block p-1 text-[10px] font-bold bg-slate-900/80 text-white truncate">{img.label}</span>
-                </button>
-              ))}
-            </div>
+          {/* Preset / Custom URL option toggle */}
+          <div className="pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setShowPresets(!showPresets)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-baza-navy hover:text-baza-green transition-colors"
+            >
+              {showPresets ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              <span>Or use external image URL / sample presets</span>
+            </button>
+
+            {showPresets && (
+              <div className="mt-3 space-y-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <Input
+                  label="Direct Image Link (URL)"
+                  placeholder="https://..."
+                  error={errors.coverImageUrl?.message}
+                  {...register('coverImageUrl')}
+                />
+
+                <div>
+                  <span className="text-[11px] font-semibold text-baza-text-secondary block mb-2">Preset Sample Photos:</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {SAMPLE_IMAGES.map((img) => (
+                      <button
+                        key={img.label}
+                        type="button"
+                        onClick={() => {
+                          setValue('coverImageUrl', img.url);
+                          if (!uploadedImages.includes(img.url)) {
+                            setUploadedImages((prev) => [...prev, img.url]);
+                          }
+                        }}
+                        className={`relative rounded-baza overflow-hidden border-2 text-left transition-all ${
+                          selectedCoverUrl === img.url ? 'border-baza-green ring-2 ring-baza-green/30' : 'border-baza-border hover:border-slate-300'
+                        }`}
+                      >
+                        <img src={img.url} alt={img.label} className="w-full h-16 object-cover" />
+                        <span className="block p-1 text-[10px] font-bold bg-slate-900/80 text-white truncate">{img.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </Card>
 

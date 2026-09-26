@@ -229,6 +229,7 @@ export const ListingDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [showContact, setShowContact] = useState(false);
   const [showVisit, setShowVisit] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const { data: listing, isLoading, isError, error } = useListingDetail(slug ?? '');
   const { isSaved, toggle: toggleSave, isLoading: saveLoading } = useToggleSave(listing?.id ?? '');
@@ -259,6 +260,21 @@ export const ListingDetailPage: React.FC = () => {
       />
     );
   }
+
+  // Compile all image URLs for gallery
+  const galleryImages: string[] = [];
+  if (listing.images && listing.images.length > 0) {
+    listing.images.forEach((img) => {
+      if (img.imageUrl && !galleryImages.includes(img.imageUrl)) {
+        galleryImages.push(img.imageUrl);
+      }
+    });
+  }
+  if (listing.coverImageUrl && !galleryImages.includes(listing.coverImageUrl)) {
+    galleryImages.unshift(listing.coverImageUrl);
+  }
+
+  const currentMainImage = galleryImages[activeImageIndex] || listing.coverImageUrl;
 
   const formattedPrice = new Intl.NumberFormat('rw-RW', {
     style: 'currency',
@@ -296,10 +312,10 @@ export const ListingDetailPage: React.FC = () => {
           {/* Main Details */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white border border-baza-border rounded-2xl overflow-hidden shadow-baza">
-              {/* Cover Image */}
-              <div className="relative aspect-video w-full bg-slate-900">
-                {listing.coverImageUrl ? (
-                  <img src={listing.coverImageUrl} alt={listing.title} className="w-full h-full object-cover" />
+              {/* Cover / Active Image */}
+              <div className="relative aspect-video w-full bg-slate-900 overflow-hidden">
+                {currentMainImage ? (
+                  <img src={currentMainImage} alt={listing.title} className="w-full h-full object-cover transition-all duration-300" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-500 text-sm">No image available</div>
                 )}
@@ -310,6 +326,23 @@ export const ListingDetailPage: React.FC = () => {
                   {listing.isVerified && <VerificationBadge type="VERIFIED_LISTING" />}
                 </div>
               </div>
+
+              {/* Gallery Thumbnails */}
+              {galleryImages.length > 1 && (
+                <div className="p-3 bg-slate-50 border-b border-baza-border flex items-center gap-2 overflow-x-auto">
+                  {galleryImages.map((imgUrl, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImageIndex(idx)}
+                      className={`relative w-20 h-14 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all ${
+                        activeImageIndex === idx ? 'border-baza-green ring-2 ring-baza-green/30 scale-105' : 'border-slate-200 opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <div className="p-6">
                 <div className="flex items-center gap-2 text-xs font-semibold text-baza-green-dark uppercase tracking-wider mb-2">

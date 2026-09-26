@@ -34,6 +34,7 @@ export interface CreateListingPayload {
   purpose: 'SALE' | 'RENT';
   categoryId: string;
   coverImageUrl?: string;
+  imageUrls?: string[];
   province?: string;
   district?: string;
   sector?: string;

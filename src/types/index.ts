@@ -64,6 +64,7 @@ export interface ListingItem {
   ownerRole?: string;
   ownerAvatar?: string;
   createdAt: string;
+  images?: Array<{ id?: string; imageUrl: string; isCover?: boolean }>;
   specs?: Record<string, string | number>;
 }
 
