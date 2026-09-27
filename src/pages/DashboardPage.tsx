@@ -1,209 +1,493 @@
 import React from 'react';
-import { PlusCircle, ShieldCheck, Clock, CheckCircle2, ShoppingBag, Eye, ArrowRight } from 'lucide-react';
+import { PlusCircle, ShieldCheck, ArrowRight, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { StatusBadge } from '../components/ui/StatusBadge';
 import { VerificationBadge } from '../components/ui/VerificationBadge';
 import { Skeleton } from '../components/feedback/Skeleton';
 import { useCurrentUser, useDashboardStats } from '../hooks/useCurrentUser';
 import { useMyListings } from '../hooks/useListings';
 import { useSessionStore } from '../store';
+import type { ListingItem } from '../types';
 
+/* ─── CSS injected once for the hero animation (the single purposeful motion) ─── */
+const DASHBOARD_STYLES = `
+  @keyframes bazaAccentGrow {
+    from { transform: scaleX(0); transform-origin: left center; }
+    to   { transform: scaleX(1); transform-origin: left center; }
+  }
+  .baza-accent-grow {
+    animation: bazaAccentGrow 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes bazaPulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.35; }
+  }
+  .baza-pulse-dot {
+    animation: bazaPulse 2.4s ease-in-out infinite;
+  }
+`;
+
+/* ─── Category monogram (grounded in the actual subject matter, not SaaS icons) ─── */
+interface MonogramMeta { short: string; bg: string; fg: string }
+
+function getMonogram(category: string, slug: string): MonogramMeta {
+  const s = (slug || category || '').toLowerCase();
+  if (s.includes('vehicle') || s.includes('car') || s.includes('truck') || s.includes('moto'))
+    return { short: 'CAR', bg: '#E9F0EA', fg: '#1E4D3A' };  // hillside green — Rwanda's verdant roads
+  if (s.includes('apartment') || s.includes('flat') || s.includes('studio'))
+    return { short: 'APT', bg: '#EBF0F7', fg: '#2A4070' };  // urban sky
+  if (s.includes('land') || s.includes('plot') || s.includes('farm'))
+    return { short: 'LND', bg: '#F4EDE6', fg: '#7C4A22' };  // Rwanda's red-clay laterite soil
+  if (s.includes('commercial') || s.includes('office') || s.includes('shop'))
+    return { short: 'COM', bg: '#EFE8F5', fg: '#52357A' };
+  if (s.includes('house') || s.includes('villa') || s.includes('property') || s.includes('home'))
+    return { short: 'HSE', bg: '#E6EEF4', fg: '#1A3550' };  // shelter blue
+  // fallback — derive from category name
+  return { short: category.replace(/\s+/g, '').slice(0, 3).toUpperCase() || '—', bg: '#F0F0EE', fg: '#555' };
+}
+
+/* ─── Status meta (no green-dot pills — left border + plain text does the work) ─── */
+interface StatusMeta { border: string; label: string; labelColor: string }
+
+function getStatusMeta(status: ListingItem['status']): StatusMeta {
+  switch (status) {
+    case 'PUBLISHED':
+    case 'APPROVED':
+      return { border: '#1E4D3A', label: 'Live on BAZA', labelColor: '#1E4D3A' };
+    case 'PENDING_REVIEW':
+      return { border: '#C25D27', label: 'Awaiting review', labelColor: '#A04A1A' };
+    case 'CHANGES_REQUESTED':
+      return { border: '#C25D27', label: 'Changes needed', labelColor: '#A04A1A' };
+    case 'DRAFT':
+      return { border: '#C0BDB8', label: 'Draft — not posted', labelColor: '#888580' };
+    case 'SOLD':
+      return { border: '#0A2A42', label: 'Sold', labelColor: '#0A2A42' };
+    case 'RENTED':
+      return { border: '#0A2A42', label: 'Rented out', labelColor: '#0A2A42' };
+    case 'REJECTED':
+      return { border: '#B91C1C', label: 'Rejected', labelColor: '#B91C1C' };
+    case 'SUSPENDED':
+    case 'ARCHIVED':
+      return { border: '#9CA3AF', label: status.charAt(0) + status.slice(1).toLowerCase(), labelColor: '#6B7280' };
+    default:
+      return { border: '#C0BDB8', label: status, labelColor: '#888580' };
+  }
+}
+
+/* ─── Main component ─── */
 export const DashboardPage: React.FC = () => {
   const { user: sessionUser } = useSessionStore();
   const { data: currentUser, isLoading: userLoading } = useCurrentUser();
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
-  const { data: myListingsData, isLoading: listingsLoading } = useMyListings({ limit: 5 });
+  const { data: myListingsData, isLoading: listingsLoading } = useMyListings({ limit: 6 });
 
   const displayUser = currentUser ?? sessionUser;
   const firstName = (displayUser as any)?.firstName ?? sessionUser?.firstName ?? 'there';
-  const roles = (displayUser as any)?.roles ?? sessionUser?.roles ?? [];
+  const roles     = (displayUser as any)?.roles ?? sessionUser?.roles ?? [];
   const primaryRole = Array.isArray(roles) ? roles[0] : roles;
 
+  const isVerified = primaryRole === 'SELLER' || primaryRole === 'BROKER' || primaryRole === 'DEALER';
+
+  const activeCount  = stats?.approved ?? 0;
+  const pendingCount = stats?.pending  ?? 0;
+  const totalCount   = stats?.total    ?? 0;
+  const soldCount    = stats?.sold     ?? 0;
+
+  const listings = myListingsData?.items ?? [];
+
   return (
-    <div className="space-y-6 font-['Plus_Jakarta_Sans',sans-serif]">
-      {/* Greeting Banner */}
-      <div className="relative bg-gradient-to-r from-baza-navy via-[#0F3554] to-baza-navy rounded-2xl p-6 sm:p-8 text-white border border-baza-navy/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 overflow-hidden">
-        {/* Subtle accent background glow */}
-        <div className="absolute -right-12 -bottom-12 w-48 h-48 rounded-full bg-baza-cyan/10 blur-2xl pointer-events-none" />
+    <>
+      {/* Inject animation keyframes — only ever rendered once */}
+      <style dangerouslySetInnerHTML={{ __html: DASHBOARD_STYLES }} />
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            {userLoading ? (
-              <Skeleton className="h-8 w-48 bg-white/20 rounded-lg" />
-            ) : (
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Hello, {firstName}!</h1>
-            )}
-            {primaryRole && <VerificationBadge type={primaryRole as any} />}
-          </div>
-          <p className="text-xs sm:text-sm font-medium text-slate-300 mt-1.5">
-            Manage your active property and vehicle listings on BAZA Marketplace.
-          </p>
-        </div>
+      <div className="space-y-5 font-['Plus_Jakarta_Sans',system-ui,sans-serif]">
 
-        <Link to="/listings/new" className="relative z-10 flex-shrink-0">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold text-white bg-[#F97316] hover:bg-[#EA580C] shadow-sm active:scale-[0.98] transition-all duration-150"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Create New Listing</span>
-          </button>
-        </Link>
-      </div>
-
-      {/* Identity Verification Status Card */}
-      <div className="bg-white border border-slate-200 border-l-4 border-l-baza-cyan rounded-2xl p-5 shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-cyan-50 border border-cyan-100 text-baza-cyan flex items-center justify-center flex-shrink-0">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
-          <div>
-            <h4 className="text-xs font-extrabold text-baza-navy uppercase tracking-wider">
-              Identity Verification: {primaryRole ? primaryRole.toUpperCase() : 'USER'}
-            </h4>
-            <p className="text-xs font-medium text-slate-500 mt-0.5">
-              {primaryRole === 'SELLER' || primaryRole === 'BROKER' || primaryRole === 'DEALER'
-                ? `Your account is verified as an active ${primaryRole} in Rwanda.`
-                : 'Submit your documents to get a verified seller badge.'}
-            </p>
-          </div>
-        </div>
-        <Link
-          to="/verification"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-baza-cyan hover:text-baza-navy transition-colors whitespace-nowrap"
+        {/* ══════════════════════════════════════════════
+            HERO — the one deliberate, memorable design moment.
+            A single typographic anchor; the cyan line is
+            the only animation on the entire page.
+            ══════════════════════════════════════════════ */}
+        <div
+          className="relative overflow-hidden rounded-2xl text-white"
+          style={{
+            background: '#0A2A42',
+            /* subtle diagonal hatch — gives warmth without gradient kitsch */
+            backgroundImage: `repeating-linear-gradient(
+              135deg,
+              transparent,
+              transparent 52px,
+              rgba(255,255,255,0.022) 52px,
+              rgba(255,255,255,0.022) 53px
+            )`,
+          }}
         >
-          <span>Verification Details</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
-      </div>
+          {/* ── Cyan accent line: the single purposeful animation ── */}
+          <div
+            className="baza-accent-grow absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl"
+            style={{ background: 'linear-gradient(90deg, #06B6D4 0%, #0891B2 55%, transparent 100%)' }}
+          />
 
-      {/* Unified Single Summary Panel for Metrics */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-none flex flex-col md:flex-row items-stretch divide-y md:divide-y-0 md:divide-x divide-slate-200 gap-6 md:gap-0">
-        {/* Primary Metric: Total Listings */}
-        <div className="md:pr-8 flex-1 flex items-center gap-5">
-          <div className="w-14 h-14 rounded-2xl bg-baza-navy text-baza-cyan flex items-center justify-center flex-shrink-0 shadow-sm">
-            <ShoppingBag className="w-7 h-7" />
-          </div>
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">Total Listings</span>
-            <h2 className="text-3xl sm:text-4xl font-black text-baza-navy tracking-tight mt-0.5">
-              {statsLoading ? <Skeleton className="h-9 w-16" /> : (stats?.total ?? 0)}
-            </h2>
-            <span className="text-[11px] font-semibold text-slate-500 mt-0.5 inline-block">Active on Platform</span>
-          </div>
-        </div>
-
-        {/* Secondary Metric 1: Approved */}
-        <div className="md:px-8 pt-5 md:pt-0 flex-1 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center flex-shrink-0">
-            <CheckCircle2 className="w-5.5 h-5.5" />
-          </div>
-          <div>
-            <span className="text-xs font-bold text-slate-500 block">Approved</span>
-            <p className="text-2xl font-bold text-slate-900 tracking-tight mt-0.5">
-              {statsLoading ? <Skeleton className="h-7 w-12" /> : (stats?.approved ?? 0)}
+          <div className="px-7 pt-10 pb-9 sm:px-10">
+            {/* Seller workspace label — quiet, specific */}
+            <p
+              className="text-xs font-semibold tracking-wide uppercase"
+              style={{ color: 'rgba(255,255,255,0.38)', letterSpacing: '0.1em' }}
+            >
+              Seller workspace · BAZA Marketplace
             </p>
-            <span className="text-[10px] font-medium text-emerald-600">Verified & Published</span>
-          </div>
-        </div>
 
-        {/* Secondary Metric 2: Pending Review */}
-        <div className="md:px-8 pt-5 md:pt-0 flex-1 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center flex-shrink-0">
-            <Clock className="w-5.5 h-5.5" />
-          </div>
-          <div>
-            <span className="text-xs font-bold text-slate-500 block">Pending Review</span>
-            <p className="text-2xl font-bold text-slate-900 tracking-tight mt-0.5">
-              {statsLoading ? <Skeleton className="h-7 w-12" /> : (stats?.pending ?? 0)}
-            </p>
-            <span className="text-[10px] font-medium text-amber-600">Under Moderation</span>
-          </div>
-        </div>
-
-        {/* Secondary Metric 3: Sold or Rented */}
-        <div className="md:pl-8 pt-5 md:pt-0 flex-1 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center flex-shrink-0">
-            <Eye className="w-5.5 h-5.5" />
-          </div>
-          <div>
-            <span className="text-xs font-bold text-slate-500 block">Sold or Rented</span>
-            <p className="text-2xl font-bold text-slate-900 tracking-tight mt-0.5">
-              {statsLoading ? <Skeleton className="h-7 w-12" /> : (stats?.sold ?? 0)}
-            </p>
-            <span className="text-[10px] font-medium text-sky-600">Completed Deals</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Listings Table Card */}
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-none">
-        <div className="px-6 py-4.5 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="text-sm font-extrabold text-baza-navy tracking-tight">My Recent Listings</h3>
-          <Link
-            to="/my-listings"
-            className="inline-flex items-center gap-1 text-xs font-bold text-baza-cyan hover:text-baza-navy transition-colors"
-          >
-            <span>View All</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        <div className="overflow-x-auto">
-          {listingsLoading ? (
-            <div className="p-6 space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-10 rounded-xl" />
-              ))}
+            {/* Primary typographic moment: the name */}
+            <div className="mt-3 flex flex-wrap items-baseline gap-3">
+              {userLoading ? (
+                <div
+                  className="rounded-lg h-12 w-52"
+                  style={{ background: 'rgba(255,255,255,0.1)' }}
+                />
+              ) : (
+                <h1
+                  className="font-black tracking-tight leading-none text-white"
+                  style={{ fontSize: 'clamp(2.1rem, 5vw, 3.2rem)' }}
+                >
+                  {firstName}
+                </h1>
+              )}
+              {primaryRole && <VerificationBadge type={primaryRole as any} />}
             </div>
-          ) : (myListingsData?.items ?? []).length === 0 ? (
-            <div className="py-14 text-center">
-              <p className="text-xs font-semibold text-slate-500">You haven't posted any listings yet.</p>
+
+            {/* Inline live stats — specific, not generic subtitle copy */}
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+              {statsLoading ? (
+                <div className="h-4 w-48 rounded" style={{ background: 'rgba(255,255,255,0.1)' }} />
+              ) : (
+                <>
+                  <span className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                    <span className="font-black text-white">{activeCount}</span>{' '}
+                    {activeCount === 1 ? 'listing' : 'listings'} live
+                  </span>
+                  {pendingCount > 0 && (
+                    <>
+                      <span style={{ color: 'rgba(255,255,255,0.18)' }}>·</span>
+                      <span className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: '#FCD34D' }}>
+                        <span
+                          className="baza-pulse-dot inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
+                          style={{ background: '#FCD34D' }}
+                        />
+                        {pendingCount} awaiting review
+                      </span>
+                    </>
+                  )}
+                  {activeCount === 0 && pendingCount === 0 && (
+                    <span className="text-sm" style={{ color: 'rgba(255,255,255,0.38)' }}>
+                      No active listings yet — post your first below.
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* CTA — restrained, clear, not a floating badge */}
+            <div className="mt-7">
               <Link
                 to="/listings/new"
-                className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-baza-cyan hover:text-baza-navy transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white
+                           focus:outline-none focus:ring-2 focus:ring-[#F97316] focus:ring-offset-2 focus:ring-offset-[#0A2A42]"
+                style={{ background: '#F97316' }}
               >
-                <span>Create your first listing</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <PlusCircle className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
+                Post a listing
               </Link>
             </div>
-          ) : (
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
-                <tr>
-                  <th className="px-6 py-3.5">Listing Title</th>
-                  <th className="px-6 py-3.5">Category</th>
-                  <th className="px-6 py-3.5">Price</th>
-                  <th className="px-6 py-3.5">Status</th>
-                  <th className="px-6 py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {(myListingsData?.items ?? []).map((listing) => (
-                  <tr key={listing.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="px-6 py-4 font-bold text-baza-navy max-w-xs truncate">{listing.title}</td>
-                    <td className="px-6 py-4 text-slate-500 font-medium">{listing.category}</td>
-                    <td className="px-6 py-4 font-extrabold text-slate-900">
-                      {listing.price.toLocaleString()} {listing.currency}
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusBadge status={listing.status} />
-                    </td>
-                    <td className="px-6 py-4 text-right">
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════
+            VERIFICATION STRIP
+            Only visible when not yet verified — no need
+            to congratulate the verified seller every visit.
+            ══════════════════════════════════════════════ */}
+        {!isVerified && (
+          <div
+            className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl"
+            style={{
+              background: '#FDFCFB',
+              border: '1px solid #E5E1DA',
+              borderLeft: '3px solid #06B6D4',
+            }}
+          >
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck className="w-4 h-4 flex-shrink-0" style={{ color: '#06B6D4' }} aria-hidden="true" />
+              <p className="text-xs font-medium text-slate-600">
+                Get your seller badge — submit your documents to be verified on BAZA.
+              </p>
+            </div>
+            <Link
+              to="/verification"
+              className="text-xs font-bold whitespace-nowrap focus:outline-none focus:underline"
+              style={{ color: '#06B6D4' }}
+            >
+              Start →
+            </Link>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════
+            STATS — real hierarchy, not four identical boxes.
+
+            Left zone (2/3 width): "Right now" — what a seller
+            checks every morning. Numbers are large enough to
+            read without glasses across a desk.
+
+            Right zone (1/3 width): "Your record" — historical,
+            useful but not urgent. Typographically smaller and
+            quieter. No icon squares, no colored badge chips.
+            ══════════════════════════════════════════════ */}
+        <div
+          className="grid gap-4"
+          style={{ gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr)' }}
+        >
+          {/* Live zone */}
+          <div
+            className="rounded-xl p-6"
+            style={{ background: '#fff', border: '1px solid #E5E1DA' }}
+          >
+            <p className="text-[11px] font-bold text-slate-400 mb-5" style={{ letterSpacing: '0.05em' }}>
+              Right now
+            </p>
+            <div className="flex flex-col sm:flex-row gap-7 sm:gap-10">
+              {/* Active — the primary number */}
+              <div>
+                <div
+                  className="font-black text-[#0A2A42] leading-none"
+                  style={{ fontSize: 'clamp(2.8rem,6vw,3.6rem)', fontVariantNumeric: 'tabular-nums' }}
+                  aria-label={`${activeCount} active listings`}
+                >
+                  {statsLoading ? <Skeleton className="h-14 w-20 inline-block rounded-lg" /> : activeCount}
+                </div>
+                <p className="mt-2 text-sm font-semibold text-slate-700">active listings</p>
+                <p className="mt-0.5 text-xs text-slate-400">live on BAZA right now</p>
+              </div>
+
+              {/* Divider */}
+              <div className="hidden sm:block w-px self-stretch bg-slate-100" />
+              <div className="block sm:hidden h-px w-full bg-slate-100" />
+
+              {/* Pending — urgent if > 0, subdued if 0 */}
+              <div>
+                <div
+                  className="font-black leading-none"
+                  style={{
+                    fontSize: 'clamp(2rem,4.5vw,2.8rem)',
+                    fontVariantNumeric: 'tabular-nums',
+                    color: pendingCount > 0 ? '#C25D27' : '#D1CBC4',
+                  }}
+                  aria-label={`${pendingCount} listings awaiting review`}
+                >
+                  {statsLoading ? <Skeleton className="h-11 w-16 inline-block rounded-lg" /> : pendingCount}
+                </div>
+                <p
+                  className="mt-2 text-sm font-semibold"
+                  style={{ color: pendingCount > 0 ? '#8B3F15' : '#A8A19A' }}
+                >
+                  awaiting review
+                </p>
+                {pendingCount > 0 ? (
+                  <p className="mt-0.5 flex items-center gap-1 text-xs" style={{ color: '#B34E1A' }}>
+                    <Clock className="w-3 h-3" aria-hidden="true" />
+                    Usually reviewed within 24 h
+                  </p>
+                ) : (
+                  <p className="mt-0.5 text-xs" style={{ color: '#BDB8B2' }}>
+                    none in queue
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Historical ledger — quieter, smaller */}
+          <div
+            className="rounded-xl p-5"
+            style={{ background: '#FDFCFB', border: '1px solid #E5E1DA' }}
+          >
+            <p className="text-[11px] font-bold text-slate-400 mb-5" style={{ letterSpacing: '0.05em' }}>
+              Your record
+            </p>
+            <div className="space-y-5">
+              <div>
+                <div
+                  className="text-3xl font-bold text-slate-600 leading-none"
+                  style={{ fontVariantNumeric: 'tabular-nums' }}
+                  aria-label={`${totalCount} listings total ever posted`}
+                >
+                  {statsLoading ? <Skeleton className="h-8 w-10 inline-block rounded" /> : totalCount}
+                </div>
+                <p className="mt-1.5 text-xs text-slate-400">posted in total</p>
+              </div>
+              <div className="h-px bg-slate-100" />
+              <div>
+                <div
+                  className="text-3xl font-bold text-slate-600 leading-none"
+                  style={{ fontVariantNumeric: 'tabular-nums' }}
+                  aria-label={`${soldCount} listings sold or rented`}
+                >
+                  {statsLoading ? <Skeleton className="h-8 w-10 inline-block rounded" /> : soldCount}
+                </div>
+                <p className="mt-1.5 text-xs text-slate-400">sold or rented</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════
+            LISTINGS FEED
+            Card rows instead of a bare table.
+            A house listing and a car listing are different
+            objects: the category monogram + left-border status
+            makes that legible at a glance. No uppercase headers.
+            No status pill badges.
+            ══════════════════════════════════════════════ */}
+        <div
+          className="rounded-xl overflow-hidden"
+          style={{ border: '1px solid #E5E1DA', background: '#fff' }}
+        >
+          {/* Feed header */}
+          <div
+            className="flex items-center justify-between px-5 py-4"
+            style={{ borderBottom: '1px solid #EDE9E2' }}
+          >
+            <h2 className="text-sm font-bold text-slate-900">Recent listings</h2>
+            <Link
+              to="/my-listings"
+              className="inline-flex items-center gap-1 text-xs font-semibold focus:outline-none focus:underline"
+              style={{ color: '#06B6D4' }}
+            >
+              See all
+              <ArrowRight className="w-3 h-3" aria-hidden="true" />
+            </Link>
+          </div>
+
+          {/* Loading skeletons */}
+          {listingsLoading && (
+            <div>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-4 px-5 py-4"
+                  style={{ borderBottom: i < 2 ? '1px solid #F5F2EE' : undefined }}
+                >
+                  <Skeleton className="w-10 h-10 rounded-lg flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-3.5 w-3/5 rounded" />
+                    <Skeleton className="h-3 w-2/5 rounded" />
+                  </div>
+                  <Skeleton className="h-4 w-24 rounded" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty state — BAZA voice, not generic placeholder */}
+          {!listingsLoading && listings.length === 0 && (
+            <div className="px-5 py-16 text-center">
+              <p className="text-base font-bold text-slate-800">
+                Your listings will appear here.
+              </p>
+              <p className="mt-2 text-sm text-slate-500 max-w-xs mx-auto">
+                Got a house, plot, or vehicle to sell in Rwanda?
+                Post it on BAZA — it takes under 5 minutes.
+              </p>
+              <Link
+                to="/listings/new"
+                className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white
+                           focus:outline-none focus:ring-2 focus:ring-[#F97316] focus:ring-offset-2"
+                style={{ background: '#F97316' }}
+              >
+                <PlusCircle className="w-4 h-4" aria-hidden="true" />
+                Post your first listing
+              </Link>
+            </div>
+          )}
+
+          {/* Listing rows */}
+          {!listingsLoading && listings.length > 0 && (
+            <div>
+              {listings.map((listing, idx) => {
+                const mono   = getMonogram(listing.category, listing.categorySlug);
+                const sm     = getStatusMeta(listing.status);
+                const isLast = idx === listings.length - 1;
+
+                return (
+                  <div
+                    key={listing.id}
+                    className="flex items-center gap-4 px-5 py-4"
+                    style={{
+                      borderBottom: isLast ? 'none' : '1px solid #F5F2EE',
+                      borderLeft: `3px solid ${sm.border}`,
+                    }}
+                  >
+                    {/* Category monogram — replaces icon-in-a-rounded-square */}
+                    <div
+                      className="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center"
+                      style={{ background: mono.bg }}
+                      aria-label={listing.category}
+                    >
+                      <span
+                        className="text-[9px] font-black leading-none"
+                        style={{ color: mono.fg, letterSpacing: '0.04em' }}
+                      >
+                        {mono.short}
+                      </span>
+                    </div>
+
+                    {/* Title + status phrase */}
+                    <div className="flex-1 min-w-0">
                       <Link
                         to={`/listings/${listing.slug}`}
-                        className="text-baza-cyan font-bold hover:text-baza-navy transition-colors"
+                        className="block text-sm font-semibold text-slate-900 truncate
+                                   hover:text-[#0A2A42] focus:outline-none focus:underline"
                       >
-                        View
+                        {listing.title}
                       </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <span
+                        className="text-[11px] font-medium mt-0.5 block"
+                        style={{ color: sm.labelColor }}
+                      >
+                        {sm.label}
+                      </span>
+                    </div>
+
+                    {/* For Sale / For Rent tag — small, contextual */}
+                    <div className="hidden sm:block flex-shrink-0">
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded"
+                        style={
+                          listing.purpose === 'RENT'
+                            ? { background: '#EBF0F7', color: '#2A4070' }
+                            : { background: '#E9F0EA', color: '#1E4D3A' }
+                        }
+                      >
+                        {listing.purpose === 'RENT' ? 'For rent' : 'For sale'}
+                      </span>
+                    </div>
+
+                    {/* Price — the most important data point, rightmost, largest */}
+                    <div className="text-right flex-shrink-0 ml-1">
+                      <div
+                        className="text-sm font-black text-slate-900 tabular-nums"
+                        style={{ fontVariantNumeric: 'tabular-nums' }}
+                      >
+                        {listing.price.toLocaleString()}
+                      </div>
+                      <div className="text-[10px] font-medium text-slate-400 mt-px">
+                        {listing.currency}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 };

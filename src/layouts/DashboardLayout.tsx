@@ -10,7 +10,6 @@ import {
   User,
   Bell,
   LogOut,
-  ChevronRight,
 } from 'lucide-react';
 import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 import { Avatar } from '../components/ui/Avatar';
@@ -32,91 +31,130 @@ export const DashboardLayout: React.FC = () => {
     }
   };
 
-  const menu = [
-    { label: 'Overview', href: '/dashboard', icon: <LayoutDashboard className="w-4 h-4" />, end: true },
-    { label: 'Create Listing', href: '/listings/new', icon: <PlusCircle className="w-4 h-4" /> },
-    { label: 'My Listings', href: '/my-listings', icon: <List className="w-4 h-4" /> },
-    { label: 'Saved Collection', href: '/saved', icon: <Heart className="w-4 h-4" /> },
-    { label: 'Visit Requests', href: '/visit-requests', icon: <Calendar className="w-4 h-4" /> },
-    { label: 'Verification Centre', href: '/verification', icon: <ShieldCheck className="w-4 h-4" /> },
-    { label: 'Alerts', href: '/alerts', icon: <Bell className="w-4 h-4" /> },
-    { label: 'My Profile', href: '/profile', icon: <User className="w-4 h-4" /> },
+  const menu: Array<{
+    label: string;
+    href: string;
+    icon: React.ReactNode;
+    end?: boolean;
+    isAction?: boolean;
+  }> = [
+    { label: 'Overview',         href: '/dashboard',       icon: <LayoutDashboard className="w-4 h-4" />, end: true },
+    { label: 'Post a listing',   href: '/listings/new',    icon: <PlusCircle className="w-4 h-4" />,      isAction: true },
+    { label: 'My listings',      href: '/my-listings',     icon: <List className="w-4 h-4" /> },
+    { label: 'Saved',            href: '/saved',            icon: <Heart className="w-4 h-4" /> },
+    { label: 'Visit requests',   href: '/visit-requests',  icon: <Calendar className="w-4 h-4" /> },
+    { label: 'Verification',     href: '/verification',    icon: <ShieldCheck className="w-4 h-4" /> },
+    { label: 'Alerts',           href: '/alerts',           icon: <Bell className="w-4 h-4" /> },
+    { label: 'Profile',          href: '/profile',          icon: <User className="w-4 h-4" /> },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50/70 pb-16 md:pb-0 font-['Plus_Jakarta_Sans',sans-serif]">
-      {/* ── Mobile Top Header ── */}
+    <div
+      className="min-h-screen flex flex-col pb-16 md:pb-0 font-['Plus_Jakarta_Sans',system-ui,sans-serif]"
+      style={{ background: '#F5F3EF' }}
+    >
+      {/* ── Mobile top header ── */}
       <header
-        className="md:hidden sticky top-0 z-40 px-4 py-3 flex items-center justify-between bg-baza-navy text-white border-b border-baza-navy/20"
+        className="md:hidden sticky top-0 z-40 px-4 py-3 flex items-center justify-between"
+        style={{ background: '#0A2A42', borderBottom: '1px solid rgba(255,255,255,0.07)' }}
       >
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2" aria-label="BAZA home">
           <img
             src="/logo.png"
             alt="BAZA"
             className="w-7 h-7 rounded-md object-contain bg-white p-0.5"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
           <span className="font-extrabold text-white text-base tracking-tight">Dashboard</span>
         </Link>
         <Avatar name={displayName} size="sm" />
       </header>
 
-      <div className="flex-1 flex max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-8">
-        {/* ── Desktop Left Sidebar ── */}
-        <aside className="hidden md:flex flex-col w-64 flex-shrink-0 h-fit rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-none">
-          {/* User Profile Identity Banner */}
-          <div className="flex items-center gap-3.5 px-5 py-5 bg-baza-navy text-white">
-            <Avatar name={displayName} size="md" className="border-2 border-white/20 shadow-sm" />
+      <div className="flex-1 flex max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7 gap-7">
+
+        {/* ── Desktop sidebar ── */}
+        <aside
+          className="hidden md:flex flex-col w-52 flex-shrink-0 h-fit rounded-xl overflow-hidden"
+          style={{ background: '#fff', border: '1px solid #E5E1DA' }}
+          aria-label="Dashboard navigation"
+        >
+          {/* User identity — plain, no navy slab */}
+          <div
+            className="flex items-center gap-3 px-4 py-4"
+            style={{ borderBottom: '1px solid #EDE9E2' }}
+          >
+            <Avatar name={displayName} size="sm" />
             <div className="truncate">
-              <h4 className="text-sm font-bold text-white truncate tracking-tight">{displayName}</h4>
-              <p className="text-[11px] font-medium text-slate-300 truncate mt-0.5">{user?.email}</p>
+              <p className="text-xs font-bold text-slate-900 truncate">{displayName}</p>
+              <p className="text-[10px] text-slate-400 truncate">{user?.email}</p>
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="p-3 space-y-1">
+          {/* Navigation */}
+          <nav className="py-2">
             {menu.map((item) => (
               <NavLink
                 key={item.label}
                 to={item.href}
                 end={item.end}
+                aria-label={item.label}
                 className={({ isActive }) =>
-                  `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all duration-150 group ${
-                    isActive
-                      ? 'bg-baza-navy text-white font-bold shadow-sm'
-                      : 'text-slate-600 font-semibold hover:text-baza-navy hover:bg-slate-100/80'
+                  `flex items-center gap-2.5 py-2.5 pr-4 text-xs transition-colors
+                   focus:outline-none focus:bg-slate-50 ${
+                    item.isAction
+                      ? 'font-bold'
+                      : isActive
+                        ? 'font-bold text-[#0A2A42]'
+                        : 'font-semibold text-slate-500 hover:text-slate-800'
                   }`
                 }
+                style={({ isActive }) => ({
+                  paddingLeft: '14px',
+                  borderLeft: isActive
+                    ? `2px solid ${item.isAction ? '#F97316' : '#0A2A42'}`
+                    : '2px solid transparent',
+                  color: item.isAction
+                    ? '#F97316'
+                    : undefined,
+                })}
               >
                 {({ isActive }) => (
                   <>
-                    <div className="flex items-center gap-3">
-                      <span className={isActive ? 'text-baza-cyan' : 'text-slate-400 group-hover:text-baza-navy transition-colors'}>
-                        {item.icon}
-                      </span>
-                      <span>{item.label}</span>
-                    </div>
-                    {isActive && <ChevronRight className="w-3.5 h-3.5 text-baza-cyan" />}
+                    <span
+                      className="flex-shrink-0"
+                      style={{
+                        color: item.isAction
+                          ? '#F97316'
+                          : isActive
+                            ? '#0A2A42'
+                            : '#94A3B8',
+                      }}
+                      aria-hidden="true"
+                    >
+                      {item.icon}
+                    </span>
+                    <span>{item.label}</span>
                   </>
                 )}
               </NavLink>
             ))}
           </nav>
 
-          {/* Logout Footer */}
-          <div className="p-3 pt-2 border-t border-slate-100 mt-2">
+          {/* Sign out — separated, calm */}
+          <div className="px-4 py-3" style={{ borderTop: '1px solid #EDE9E2' }}>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2.5 text-xs font-bold text-red-600 hover:bg-red-50 px-3.5 py-2.5 rounded-xl w-full text-left transition-colors"
+              className="flex items-center gap-2 text-[11px] font-semibold text-slate-400
+                         hover:text-red-600 transition-colors focus:outline-none focus:text-red-600 w-full text-left"
+              aria-label="Sign out"
             >
-              <LogOut className="w-4 h-4" /> Sign Out
+              <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
+              Sign out
             </button>
           </div>
         </aside>
 
-        {/* ── Main Dashboard View ── */}
+        {/* ── Main content ── */}
         <main className="flex-1 min-w-0">
           <Outlet />
         </main>
