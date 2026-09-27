@@ -14,9 +14,7 @@ export const PublicLayout: React.FC = () => {
       </main>
 
       {/* ── Footer ────────────────────────────────────────────── */}
-      <footer style={{ background: '#0A2A42' }}>
-        {/* Top coral accent */}
-        <div style={{ height: '2px', background: 'linear-gradient(90deg, #F97316 0%, #06B6D4 100%)' }} />
+      <footer style={{ background: '#071D2F', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
@@ -51,12 +49,7 @@ export const PublicLayout: React.FC = () => {
 
             {/* Categories */}
             <div>
-              <h4
-                className="text-xs font-bold uppercase tracking-widest mb-4"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
-              >
-                Browse
-              </h4>
+              <p className="text-xs font-semibold text-white mb-4">Browse</p>
               <ul className="space-y-2.5">
                 {[
                   { label: 'Houses for Sale & Rent',   href: '/marketplace?category=houses' },
@@ -82,12 +75,7 @@ export const PublicLayout: React.FC = () => {
 
             {/* Account */}
             <div>
-              <h4
-                className="text-xs font-bold uppercase tracking-widest mb-4"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
-              >
-                Account
-              </h4>
+              <p className="text-xs font-semibold text-white mb-4">Account</p>
               <ul className="space-y-2.5">
                 {[
                   { label: 'User Dashboard',     href: '/dashboard' },
@@ -113,12 +101,7 @@ export const PublicLayout: React.FC = () => {
 
             {/* Contact */}
             <div>
-              <h4
-                className="text-xs font-bold uppercase tracking-widest mb-4"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
-              >
-                Contact
-              </h4>
+              <p className="text-xs font-semibold text-white mb-4">Contact</p>
               <ul className="space-y-3">
                 {[
                   { icon: <MapPin className="w-4 h-4 flex-shrink-0" />, text: 'Kigali, Gasabo, Rwanda' },
@@ -143,8 +126,8 @@ export const PublicLayout: React.FC = () => {
             className="mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
             style={{ borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }}
           >
-            <p>&copy; {new Date().getFullYear()} BAZA Marketplace. All rights reserved.</p>
-            <p style={{ color: 'rgba(255,255,255,0.2)' }}>Built in Rwanda 🇷🇼</p>
+            <p>© {new Date().getFullYear()} BAZA Marketplace. All rights reserved.</p>
+            <p style={{ color: 'rgba(255,255,255,0.2)' }}>Built in Rwanda 🇷🇼 · 5 Provinces, 30 Districts</p>
           </div>
         </div>
       </footer>

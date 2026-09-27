@@ -99,53 +99,56 @@ export const DashboardPage: React.FC = () => {
       {/* Inject animation keyframes — only ever rendered once */}
       <style dangerouslySetInnerHTML={{ __html: DASHBOARD_STYLES }} />
 
-      <div className="space-y-5 font-['Plus_Jakarta_Sans',system-ui,sans-serif]">
+      <div className="space-y-5">
 
-        {/* ══════════════════════════════════════════════
-            HERO — the one deliberate, memorable design moment.
-            A single typographic anchor; the cyan line is
-            the only animation on the entire page.
-            ══════════════════════════════════════════════ */}
+        {/* ════════════════════════════════════════════
+            HERO — the deliberate typographic moment.
+            A warm surface, a large DM Serif name — the single
+            bold statement. The amber accent line is the only animation.
+            ════════════════════════════════════════════ */}
         <div
-          className="relative overflow-hidden rounded-2xl text-white"
+          className="relative overflow-hidden rounded-xl"
           style={{
-            background: '#0A2A42',
-            /* subtle diagonal hatch — gives warmth without gradient kitsch */
-            backgroundImage: `repeating-linear-gradient(
-              135deg,
-              transparent,
-              transparent 52px,
-              rgba(255,255,255,0.022) 52px,
-              rgba(255,255,255,0.022) 53px
-            )`,
+            background: '#FFFFFF',
+            border: '1px solid #E5E1DA',
+            borderLeft: '4px solid #C17D2E',  /* Sun amber left accent — the bold moment */
           }}
         >
-          {/* ── Cyan accent line: the single purposeful animation ── */}
+          {/* ── Amber accent line: the single purposeful animation ── */}
           <div
-            className="baza-accent-grow absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl"
-            style={{ background: 'linear-gradient(90deg, #06B6D4 0%, #0891B2 55%, transparent 100%)' }}
+            className="baza-accent-grow absolute top-0 left-0 right-0 h-[2px] rounded-t-xl"
+            style={{ background: 'linear-gradient(90deg, #C17D2E 0%, #A06020 55%, transparent 100%)' }}
           />
 
           <div className="px-7 pt-10 pb-9 sm:px-10">
-            {/* Seller workspace label — quiet, specific */}
+            {/* Context label — quiet, specific */}
             <p
-              className="text-xs font-semibold tracking-wide uppercase"
-              style={{ color: 'rgba(255,255,255,0.38)', letterSpacing: '0.1em' }}
+              className="text-xs font-semibold"
+              style={{
+                color: '#8A9099',
+                letterSpacing: '0.04em',
+                fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
+              }}
             >
-              Seller workspace · BAZA Marketplace
+              Seller workspace
             </p>
 
-            {/* Primary typographic moment: the name */}
+            {/* Primary typographic moment: DM Serif Display name */}
             <div className="mt-3 flex flex-wrap items-baseline gap-3">
               {userLoading ? (
                 <div
-                  className="rounded-lg h-12 w-52"
-                  style={{ background: 'rgba(255,255,255,0.1)' }}
+                  className="rounded h-12 w-52"
+                  style={{ background: '#E8E4DC' }}
                 />
               ) : (
                 <h1
-                  className="font-black tracking-tight leading-none text-white"
-                  style={{ fontSize: 'clamp(2.1rem, 5vw, 3.2rem)' }}
+                  className="text-baza-text-primary leading-none"
+                  style={{
+                    fontFamily: '"DM Serif Display", Georgia, serif',
+                    fontSize: 'clamp(2.1rem, 5vw, 3.2rem)',
+                    fontWeight: 400,
+                    letterSpacing: '-0.01em',
+                  }}
                 >
                   {firstName}
                 </h1>
@@ -156,27 +159,27 @@ export const DashboardPage: React.FC = () => {
             {/* Inline live stats — specific, not generic subtitle copy */}
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
               {statsLoading ? (
-                <div className="h-4 w-48 rounded" style={{ background: 'rgba(255,255,255,0.1)' }} />
+                <div className="h-4 w-48 rounded" style={{ background: '#E8E4DC' }} />
               ) : (
                 <>
-                  <span className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                    <span className="font-black text-white">{activeCount}</span>{' '}
+                  <span className="text-sm" style={{ color: '#4A5568', fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}>
+                    <span className="font-black" style={{ color: '#0D1E2C' }}>{activeCount}</span>{' '}
                     {activeCount === 1 ? 'listing' : 'listings'} live
                   </span>
                   {pendingCount > 0 && (
                     <>
-                      <span style={{ color: 'rgba(255,255,255,0.18)' }}>·</span>
-                      <span className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: '#FCD34D' }}>
+                      <span style={{ color: '#D4CFC7' }}>·</span>
+                      <span className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: '#C25D27', fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}>
                         <span
                           className="baza-pulse-dot inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
-                          style={{ background: '#FCD34D' }}
+                          style={{ background: '#C25D27' }}
                         />
                         {pendingCount} awaiting review
                       </span>
                     </>
                   )}
                   {activeCount === 0 && pendingCount === 0 && (
-                    <span className="text-sm" style={{ color: 'rgba(255,255,255,0.38)' }}>
+                    <span className="text-sm" style={{ color: '#8A9099', fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}>
                       No active listings yet — post your first below.
                     </span>
                   )}
@@ -184,13 +187,13 @@ export const DashboardPage: React.FC = () => {
               )}
             </div>
 
-            {/* CTA — restrained, clear, not a floating badge */}
+            {/* CTA — Sun amber, consistent verb */}
             <div className="mt-7">
               <Link
                 to="/listings/new"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white
-                           focus:outline-none focus:ring-2 focus:ring-[#F97316] focus:ring-offset-2 focus:ring-offset-[#0A2A42]"
-                style={{ background: '#F97316' }}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded text-sm font-bold text-white
+                           focus:outline-none focus:ring-2 focus:ring-[#C17D2E] focus:ring-offset-2"
+                style={{ background: '#C17D2E', fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}
               >
                 <PlusCircle className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
                 Post a listing

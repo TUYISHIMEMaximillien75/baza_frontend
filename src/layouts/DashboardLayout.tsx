@@ -50,10 +50,10 @@ export const DashboardLayout: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col pb-16 md:pb-0 font-['Plus_Jakarta_Sans',system-ui,sans-serif]"
-      style={{ background: '#F5F3EF' }}
+      className="min-h-screen flex flex-col pb-16 md:pb-0"
+      style={{ background: '#EDEBE5', fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}
     >
-      {/* ── Mobile top header ── */}
+      {/* ── Mobile top header — single bar, no gradient line ── */}
       <header
         className="md:hidden sticky top-0 z-40 px-4 py-3 flex items-center justify-between"
         style={{ background: '#0A2A42', borderBottom: '1px solid rgba(255,255,255,0.07)' }}
@@ -74,14 +74,14 @@ export const DashboardLayout: React.FC = () => {
 
         {/* ── Desktop sidebar ── */}
         <aside
-          className="hidden md:flex flex-col w-52 flex-shrink-0 h-fit rounded-xl overflow-hidden"
+          className="hidden md:flex flex-col w-52 flex-shrink-0 h-fit rounded-lg overflow-hidden"
           style={{ background: '#fff', border: '1px solid #E5E1DA' }}
           aria-label="Dashboard navigation"
         >
           {/* User identity — plain, no navy slab */}
           <div
             className="flex items-center gap-3 px-4 py-4"
-            style={{ borderBottom: '1px solid #EDE9E2' }}
+            style={{ borderBottom: '1px solid #E5E1DA' }}
           >
             <Avatar name={displayName} size="sm" />
             <div className="truncate">

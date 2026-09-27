@@ -1,11 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Building2, Heart, Plus, User, ChevronDown,
+  Heart, Plus, User, ChevronDown,
   LayoutDashboard, ShieldCheck, Bell, LogOut, ListOrdered,
-  Search,
 } from 'lucide-react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '../ui/Button';
 import { Avatar } from '../ui/Avatar';
 import { useSessionStore } from '../../store';
 import authService from '../../services/authService';
@@ -59,51 +57,43 @@ export const DesktopHeader: React.FC = () => {
   const fullName  = `${firstName} ${lastName}`.trim() || 'Account';
 
   return (
-    <header className="sticky top-0 z-40" style={{ background: '#0A2A42' }}>
-      {/* Thin coral accent line at very top */}
-      <div style={{ height: '2px', background: 'linear-gradient(90deg, #F97316 0%, #06B6D4 100%)' }} />
-
+    /* Single nav bar — no thin utility strip above it */
+    <header
+      className="sticky top-0 z-40"
+      style={{ background: '#0A2A42', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[60px]">
+        <div className="flex items-center justify-between h-[62px]">
 
           {/* ── Logo ── */}
-          <Link to="/" className="flex items-center gap-2.5 group flex-shrink-0">
+          <Link to="/" className="flex items-center gap-2.5 group flex-shrink-0" aria-label="BAZA home">
             <img
               src="/logo.png"
               alt="BAZA"
-              className="w-9 h-9 rounded-lg object-contain bg-white p-0.5 shadow-sm group-hover:scale-105 transition-transform duration-200"
-              onError={(e) => {
-                // fallback if logo doesn't load
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
+              className="w-8 h-8 rounded object-contain bg-white p-0.5 group-hover:scale-105 transition-transform duration-200"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
-            <div className="flex flex-col leading-none">
-              <span
-                className="text-white font-black tracking-tight text-lg"
-                style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif', letterSpacing: '-0.03em' }}
-              >
-                BAZA<span style={{ color: '#06B6D4' }}>.rw</span>
-              </span>
-              <span className="text-[9px] font-bold uppercase tracking-widest mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                Marketplace
-              </span>
-            </div>
+            <span
+              className="text-white font-bold text-base tracking-tight"
+              style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif', letterSpacing: '-0.02em' }}
+            >
+              BAZA<span style={{ color: '#06B6D4' }}>.rw</span>
+            </span>
           </Link>
 
           {/* ── Desktop Nav ── */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-0.5" aria-label="Main navigation">
             {navLinks.map((link) => {
               const active = isLinkActive(link.href);
               return (
                 <Link
                   key={link.label}
                   to={link.href}
-                  className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
+                  className={`px-3 py-2 rounded text-xs font-semibold transition-colors duration-150 ${
                     active
                       ? 'bg-white/10 text-white'
-                      : 'text-white/65 hover:text-white hover:bg-white/8'
+                      : 'text-white/60 hover:text-white hover:bg-white/8'
                   }`}
-                  style={active ? { fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' } : {}}
                 >
                   {link.label}
                 </Link>
@@ -113,10 +103,10 @@ export const DesktopHeader: React.FC = () => {
               <NavLink
                 to="/dashboard"
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
+                  `px-3 py-2 rounded text-xs font-semibold transition-colors duration-150 ${
                     isActive
                       ? 'bg-white/10 text-white'
-                      : 'text-white/65 hover:text-white hover:bg-white/8'
+                      : 'text-white/60 hover:text-white hover:bg-white/8'
                   }`
                 }
               >
@@ -132,32 +122,34 @@ export const DesktopHeader: React.FC = () => {
                 {/* Saved */}
                 <Link
                   to="/saved"
-                  className="hidden sm:flex p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-                  title="Saved Collection"
+                  className="hidden sm:flex p-2 rounded text-white/55 hover:text-white hover:bg-white/10 transition-colors"
+                  title="Saved"
+                  aria-label="Saved listings"
                 >
-                  <Heart className="w-4.5 h-4.5" />
+                  <Heart className="w-4 h-4" />
                 </Link>
                 {/* Alerts */}
                 <Link
                   to="/alerts"
-                  className="hidden sm:flex p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                  className="hidden sm:flex p-2 rounded text-white/55 hover:text-white hover:bg-white/10 transition-colors"
                   title="Alerts"
+                  aria-label="Alerts"
                 >
-                  <Bell className="w-4.5 h-4.5" />
+                  <Bell className="w-4 h-4" />
                 </Link>
 
-                {/* Post Listing — coral CTA */}
+                {/* Post a listing — Sun amber CTA, consistent verb */}
                 <Link to="/listings/new">
                   <button
-                    className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white transition-all duration-150 hover:opacity-90 active:scale-95"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded text-xs font-bold text-white transition-all duration-150 hover:opacity-90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0A2A42]"
                     style={{
-                      background: 'linear-gradient(135deg, #F97316 0%, #EF4444 100%)',
-                      boxShadow: '0 2px 8px rgba(249,115,22,0.4)',
+                      background: '#C17D2E',
+                      boxShadow: '0 2px 8px rgba(193,125,46,0.4)',
                       fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
                     }}
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    Post Listing
+                    Post a listing
                   </button>
                 </Link>
 
@@ -165,7 +157,9 @@ export const DesktopHeader: React.FC = () => {
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex items-center gap-1.5 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                    className="flex items-center gap-1.5 p-1.5 rounded hover:bg-white/10 transition-colors focus:outline-none focus:ring-1 focus:ring-white/30"
+                    aria-haspopup="true"
+                    aria-expanded={dropdownOpen}
                   >
                     <Avatar name={fullName} size="sm" />
                     <ChevronDown
@@ -178,39 +172,39 @@ export const DesktopHeader: React.FC = () => {
 
                   {dropdownOpen && (
                     <div
-                      className="absolute right-0 top-full mt-2 w-56 bg-white rounded-baza-lg overflow-hidden z-50 animate-slide-down"
-                      style={{ boxShadow: '0 16px 40px -8px rgba(10,42,66,0.22), 0 4px 12px -4px rgba(10,42,66,0.10)' }}
+                      className="absolute right-0 top-full mt-2 w-52 bg-white rounded-baza-lg overflow-hidden z-50 animate-slide-down"
+                      style={{ boxShadow: '0 16px 40px -8px rgba(13,30,44,0.22), 0 4px 12px -4px rgba(13,30,44,0.10)', border: '1px solid #E5E1DA' }}
                     >
-                      {/* User info header */}
-                      <div className="px-4 py-3.5" style={{ background: '#F0F4F8', borderBottom: '1px solid #E2E8F0' }}>
+                      {/* User info */}
+                      <div className="px-4 py-3" style={{ background: '#F5F3EF', borderBottom: '1px solid #E5E1DA' }}>
                         <p className="text-xs font-bold text-baza-navy truncate" style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}>{fullName}</p>
                         <p className="text-2xs text-baza-text-secondary truncate mt-0.5">{(user as any)?.email ?? ''}</p>
                       </div>
                       <div className="py-1">
                         {[
-                          { to: '/dashboard',    icon: <LayoutDashboard className="w-4 h-4" style={{ color: '#06B6D4' }} />, label: 'Dashboard' },
-                          { to: '/my-listings',  icon: <ListOrdered className="w-4 h-4" style={{ color: '#0891B2' }} />,     label: 'My Listings' },
-                          { to: '/saved',        icon: <Heart className="w-4 h-4 text-rose-400" />,                         label: 'Saved Collection' },
-                          { to: '/verification', icon: <ShieldCheck className="w-4 h-4" style={{ color: '#10B981' }} />,    label: 'Verification' },
-                          { to: '/profile',      icon: <User className="w-4 h-4 text-slate-400" />,                         label: 'Profile' },
+                          { to: '/dashboard',    icon: <LayoutDashboard className="w-4 h-4 text-baza-cyan" />,           label: 'Dashboard' },
+                          { to: '/my-listings',  icon: <ListOrdered className="w-4 h-4 text-baza-teal" />,               label: 'My listings' },
+                          { to: '/saved',        icon: <Heart className="w-4 h-4 text-rose-400" />,                      label: 'Saved' },
+                          { to: '/verification', icon: <ShieldCheck className="w-4 h-4 text-baza-hillside" />,           label: 'Verification' },
+                          { to: '/profile',      icon: <User className="w-4 h-4 text-slate-400" />,                      label: 'Profile' },
                         ].map(({ to, icon, label }) => (
                           <Link
                             key={to}
                             to={to}
                             onClick={() => setDropdownOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-baza-text-primary hover:bg-slate-50 transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-baza-text-primary hover:bg-baza-muted transition-colors"
                           >
                             {icon}
                             {label}
                           </Link>
                         ))}
                       </div>
-                      <div style={{ borderTop: '1px solid #E2E8F0' }} className="py-1">
+                      <div style={{ borderTop: '1px solid #E5E1DA' }} className="py-1">
                         <button
                           onClick={() => { setDropdownOpen(false); handleLogout(); }}
                           className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-semibold text-baza-error hover:bg-red-50 transition-colors"
                         >
-                          <LogOut className="w-4 h-4" /> Sign Out
+                          <LogOut className="w-4 h-4" /> Sign out
                         </button>
                       </div>
                     </div>
@@ -221,21 +215,21 @@ export const DesktopHeader: React.FC = () => {
               <>
                 <Link
                   to="/login"
-                  className="hidden sm:inline-flex px-3 py-2 text-xs font-semibold rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                  className="hidden sm:inline-flex px-3 py-2 text-xs font-semibold rounded text-white/65 hover:text-white hover:bg-white/10 transition-colors"
                 >
-                  Sign In
+                  Sign in
                 </Link>
                 <Link to="/listings/new">
                   <button
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white transition-all hover:opacity-90 active:scale-95"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded text-xs font-bold text-white transition-all hover:opacity-90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0A2A42]"
                     style={{
-                      background: 'linear-gradient(135deg, #F97316 0%, #EF4444 100%)',
-                      boxShadow: '0 2px 8px rgba(249,115,22,0.4)',
+                      background: '#C17D2E',
+                      boxShadow: '0 2px 8px rgba(193,125,46,0.4)',
                       fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
                     }}
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    Create Listing
+                    Post a listing
                   </button>
                 </Link>
               </>

@@ -1,8 +1,7 @@
 import React from 'react';
-import { MapPin, Heart, Eye, ArrowUpRight } from 'lucide-react';
+import { MapPin, Heart, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ListingItem } from '../../types';
-import { Badge } from '../ui/Badge';
 import { VerificationBadge } from '../ui/VerificationBadge';
 import { useToggleSave } from '../../hooks/useSavedListings';
 import { useSessionStore } from '../../store';
@@ -25,35 +24,45 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   }).format(listing.price);
 
   return (
-    <div className="group bg-white border border-baza-border rounded-baza shadow-baza hover:shadow-baza-lg hover:-translate-y-0.5 transition-all duration-250 overflow-hidden flex flex-col">
+    <div
+      className="group flex flex-col overflow-hidden transition-all duration-250"
+      style={{
+        background: '#FFFFFF',
+        border: '1px solid #E5E1DA',
+        borderRadius: '0.5rem',
+        boxShadow: '0 1px 3px 0 rgba(13,30,44,0.05)',
+      }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 6px 20px -4px rgba(13,30,44,0.12)'; (e.currentTarget as HTMLDivElement).style.borderColor = '#D4CFC7'; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 3px 0 rgba(13,30,44,0.05)'; (e.currentTarget as HTMLDivElement).style.borderColor = '#E5E1DA'; }}
+    >
       {/* ── Image ── */}
-      <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden">
+      <div className="relative aspect-[4/3] w-full overflow-hidden" style={{ background: '#E8E4DC' }}>
         <img
           src={listing.coverImageUrl || FALLBACK_IMAGE}
           alt={listing.title}
-          className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-400"
+          className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-400"
           loading="lazy"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = FALLBACK_IMAGE;
-          }}
+          onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMAGE; }}
         />
 
-        {/* Gradient overlay — bottom for price legibility */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'linear-gradient(to top, rgba(10,42,66,0.55) 0%, transparent 45%)',
-          }}
-        />
+        {/* Purpose badge — top-left, small and readable */}
+        <span
+          className="absolute top-2.5 left-2.5 text-[10px] font-bold px-2 py-0.5 rounded"
+          style={
+            listing.purpose === 'SALE'
+              ? { background: '#C17D2E', color: '#fff' }   // Sun amber for sale
+              : { background: '#0A2A42', color: '#fff' }   // Navy for rent
+          }
+        >
+          {listing.purpose === 'SALE' ? 'For sale' : 'For rent'}
+        </span>
 
-        {/* Purpose + verification badges */}
-        <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1">
-          <Badge variant={listing.purpose === 'SALE' ? 'coral' : 'navy'}>
-            For {listing.purpose === 'SALE' ? 'Sale' : 'Rent'}
-          </Badge>
-          {listing.isVerified && <VerificationBadge type="VERIFIED_LISTING" />}
-        </div>
+        {/* Verification badge — top-right */}
+        {listing.isVerified && (
+          <div className="absolute top-2.5 right-2.5">
+            <VerificationBadge type="VERIFIED_LISTING" />
+          </div>
+        )}
 
         {/* Save button */}
         {isAuthenticated && (
@@ -63,69 +72,70 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
               if (!saveLoading) toggleSave();
             }}
             disabled={saveLoading}
-            className={`absolute top-2.5 right-2.5 p-2 rounded-full backdrop-blur-sm transition-all duration-150 ${
+            className={`absolute bottom-2.5 right-2.5 p-1.5 rounded-full backdrop-blur-sm transition-all duration-150 ${
               isSaved
-                ? 'bg-white text-baza-coral shadow-md scale-110'
-                : 'bg-baza-navy/40 text-white hover:bg-white hover:text-baza-coral'
+                ? 'bg-white text-rose-500 shadow-md scale-110'
+                : 'bg-black/30 text-white hover:bg-white hover:text-rose-500'
             } ${saveLoading ? 'opacity-60 cursor-wait' : ''}`}
             aria-label={isSaved ? 'Remove from saved' : 'Save listing'}
           >
-            <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+            <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-current' : ''}`} />
           </button>
         )}
-
-        {/* Price overlay at bottom-left */}
-        <div className="absolute bottom-2.5 left-2.5 pointer-events-none">
-          <span
-            className="text-white font-extrabold text-sm px-2 py-0.5 rounded"
-            style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}
-          >
-            {formattedPrice}
-            {listing.purpose === 'RENT' && (
-              <span className="text-[10px] font-semibold opacity-80"> / mo</span>
-            )}
-          </span>
-        </div>
       </div>
 
-      {/* ── Card Content ── */}
-      <div className="p-4 flex-1 flex flex-col justify-between">
-        <div>
-          {/* Category + Location row */}
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <span
-              className="text-[10px] font-extrabold uppercase tracking-widest"
-              style={{ color: '#06B6D4' }}
-            >
-              {listing.category}
-            </span>
-            <div className="flex items-center gap-0.5 text-slate-400 text-[10px]">
-              <MapPin className="w-3 h-3" />
-              <span className="truncate max-w-[110px]">{listing.location}</span>
-            </div>
+      {/* ── Card content — price lives here, not on the image ── */}
+      <div className="p-4 flex-1 flex flex-col">
+        {/* Category — plain text, not ALL-CAPS eyebrow */}
+        <p
+          className="text-xs mb-1.5"
+          style={{ color: '#8A9099', fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}
+        >
+          {listing.category}
+        </p>
+
+        {/* Title — Plus Jakarta Sans for UI cards (DM Serif is for editorial headings) */}
+        <Link to={`/listings/${listing.slug}`} className="block">
+          <h3
+            className="text-sm font-semibold line-clamp-1 leading-snug transition-colors"
+            style={{ color: '#0D1E2C', fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#C17D2E')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#0D1E2C')}
+          >
+            {listing.title}
+          </h3>
+        </Link>
+
+        {/* Location */}
+        {listing.location && (
+          <div className="flex items-center gap-1 mt-1.5 text-xs" style={{ color: '#8A9099', fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}>
+            <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden />
+            <span className="truncate max-w-[130px]">{listing.location}</span>
           </div>
+        )}
 
-          {/* Title */}
-          <Link to={`/listings/${listing.slug}`} className="block">
-            <h3 className="text-sm font-bold text-baza-navy group-hover:text-baza-cyan transition-colors line-clamp-1 leading-snug">
-              {listing.title}
-            </h3>
-          </Link>
-
-          {/* Description */}
-          <p className="text-[11px] text-baza-text-secondary mt-1.5 line-clamp-2 leading-relaxed">
-            {listing.description}
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-end">
+        {/* Footer — price is the primary data, bold Sun amber */}
+        <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
+          <div>
+            <span
+              className="text-sm font-bold tabular-nums"
+              style={{ color: '#C17D2E', fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}
+            >
+              {formattedPrice}
+            </span>
+            {listing.purpose === 'RENT' && (
+              <span className="text-xs ml-1" style={{ color: '#8A9099', fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}>/ mo</span>
+            )}
+          </div>
           <Link
             to={`/listings/${listing.slug}`}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-baza-navy hover:text-baza-cyan transition-colors group/link"
+            className="inline-flex items-center gap-1 text-xs font-semibold transition-colors focus:outline-none focus:underline"
+            style={{ color: '#0A2A42', fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#C17D2E')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#0A2A42')}
           >
-            View Details
-            <ArrowUpRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+            View
+            <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
       </div>

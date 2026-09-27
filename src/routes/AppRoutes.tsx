@@ -1,9 +1,16 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { WebsiteLayout } from '../layouts/WebsiteLayout';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { DashboardLayout } from '../layouts/DashboardLayout';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { AuthLayout } from '../layouts/AuthLayout';
+
+import { WebsiteHomePage } from '../pages/website/WebsiteHomePage';
+import { AboutPage } from '../pages/website/AboutPage';
+import { TrustPage } from '../pages/website/TrustPage';
+import { CategoriesOverviewPage } from '../pages/website/CategoriesOverviewPage';
+import { ContactWebsitePage } from '../pages/website/ContactWebsitePage';
 
 import { HomePage } from '../pages/HomePage';
 import { MarketplacePage } from '../pages/MarketplacePage';
@@ -82,9 +89,17 @@ export const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      {/* ── Public Routes ───────────────────────────────────────────────────── */}
+      {/* ── Public Website Routes ────────────────────────────────────────────── */}
+      <Route element={<WebsiteLayout />}>
+        <Route path="/" element={<WebsiteHomePage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/trust" element={<TrustPage />} />
+        <Route path="/categories" element={<CategoriesOverviewPage />} />
+        <Route path="/contact" element={<ContactWebsitePage />} />
+      </Route>
+
+      {/* ── Marketplace Application Public Routes ───────────────────────────── */}
       <Route element={<PublicLayout />}>
-        <Route path="/" element={<HomePage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/listings/:slug" element={<ListingDetailPage />} />
       </Route>

@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
 /* ═══════════════════════════════════════════════════════════
    BAZA DESIGN SYSTEM — Phase 1: Foundation
    Visual DNA extracted from the BAZA logo:
@@ -19,39 +22,45 @@
   }
 
   body {
-    background-color: #F0F4F8;
-    color: #0F172A;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #EDEBE5; /* Overcast — warm Kigali morning sky, not cold blue-grey SaaS */
+    color: #0D1E2C;            /* Night ink */
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Headings use the display font */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    font-feature-settings: 'cv11';
-    letter-spacing: -0.025em;
+  /* Headings: DM Serif Display — specific to physical asset ownership, wrong for SaaS */
+  h1, h2, h3 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    letter-spacing: -0.01em;
+    font-weight: 400; /* Serif display is already heavy at 400 */
   }
 
-  /* Focus visible — accessible, not the browser default blue */
+  h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-feature-settings: 'cv11';
+    letter-spacing: -0.02em;
+  }
+
+  /* Focus visible — accessible, warm amber ring (not bright cyan) */
   *:focus-visible {
-    outline: 2px solid #06B6D4;
+    outline: 2px solid #C17D2E;
     outline-offset: 2px;
   }
 
-  /* Selection colour */
+  /* Selection colour — warm, not cyan */
   ::selection {
-    background: #CFFAFE;
+    background: #F4E4C8;
     color: #0A2A42;
   }
 }
 
 /* ─── Scrollbar ───────────────────────────────────────────── */
 ::-webkit-scrollbar        { width: 5px; height: 5px; }
-::-webkit-scrollbar-track  { background: #F0F4F8; }
-::-webkit-scrollbar-thumb  { background: #CBD5E1; border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+::-webkit-scrollbar-track  { background: #EDEBE5; }
+::-webkit-scrollbar-thumb  { background: #C8C3BB; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #A09890; }
 
 /* ─── Global Animation Keyframes ─────────────────────────── */
 @keyframes spin         { to { transform: rotate(360deg); } }
@@ -94,16 +103,16 @@
     background-clip: text;
   }
 
-  /* Surface card — clean white with subtle navy shadow */
+  /* Surface card — clean white with warm border, no feathered drop shadow */
   .baza-card {
     background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 0.875rem;
-    box-shadow: 0 1px 3px 0 rgba(10,42,66,0.06), 0 1px 2px -1px rgba(10,42,66,0.04);
+    border: 1px solid #E5E1DA;
+    border-radius: 0.625rem;
+    box-shadow: 0 1px 3px 0 rgba(13,30,44,0.05), 0 1px 2px -1px rgba(13,30,44,0.03);
     transition: box-shadow 0.2s cubic-bezier(0.16,1,0.3,1), transform 0.2s cubic-bezier(0.16,1,0.3,1);
   }
   .baza-card:hover {
-    box-shadow: 0 8px 24px -4px rgba(10,42,66,0.12), 0 3px 8px -3px rgba(10,42,66,0.06);
+    box-shadow: 0 6px 20px -4px rgba(13,30,44,0.10), 0 2px 6px -2px rgba(13,30,44,0.05);
   }
 
   /* Section divider with left coral accent line */
