@@ -6,7 +6,6 @@ import { EmptyState } from '../components/feedback/EmptyState';
 import { Skeleton } from '../components/feedback/Skeleton';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/Button';
-import { SearchInput } from '../components/ui/SearchInput';
 import { Tabs } from '../components/ui/Tabs';
 import { Pagination } from '../components/ui/Pagination';
 import { useCategories } from '../hooks/useCategories';
@@ -14,10 +13,23 @@ import { useListings } from '../hooks/useListings';
 import { useDebounce } from '../hooks/useDebounce';
 import type { ListingFilters } from '../services/listingsService';
 import { getProvinces, getDistricts } from '../data/rwandaLocations';
+import { AiSearchBar } from '../components/ai/AiSearchBar';
+import { AiSearchResults } from '../components/ai/AiSearchResults';
+import type { AiSearchResponse } from '../services/aiSearchService';
 
 export const MarketplacePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
+
+  // ── Sarah AI search state ──────────────────────────────────────────────
+  const [aiResults, setAiResults] = useState<AiSearchResponse | null>(null);
+  const [aiSearching, setAiSearching] = useState(false);
+  const [aiQuery, setAiQuery] = useState('');
+  // Placeholder ref for AiSearchResults (not scrolled in marketplace — results appear in place)
+  const aiSectionRef = { current: null } as React.RefObject<HTMLElement>;
+
+  const handleAiResults = (res: AiSearchResponse | null) => setAiResults(res);
+  const handleAiClose = () => { setAiResults(null); setAiQuery(''); };
 
   // Derive all filter values directly from URL — single source of truth
   const activeTab = searchParams.get('category') ?? 'all';
@@ -90,11 +102,13 @@ export const MarketplacePage: React.FC = () => {
 
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <SearchInput
-          value={search}
-          onChange={(val) => updateParam({ search: val })}
-          className="flex-1"
-        />
+        <div className="flex-1">
+          <AiSearchBar
+            onResults={handleAiResults}
+            onSearching={setAiSearching}
+            onQueryChange={setAiQuery}
+          />
+        </div>
         <Button
           variant={showFilters ? 'primary' : 'outline'}
           size="md"
@@ -205,52 +219,78 @@ export const MarketplacePage: React.FC = () => {
         </div>
       )}
 
-      {/* Results count */}
-      {!isLoading && meta && (
+      {/* ── Sarah AI Results (shown above grid when active) ── */}
+      {aiSearching && (
+        <div className="space-y-4">
+          <div className="ai-rs-skeleton-header">
+            <div className="ai-rs-skeleton-bar ai-rs-skeleton-bar--wide" />
+            <div className="ai-rs-skeleton-bar ai-rs-skeleton-bar--narrow" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-64 rounded-2xl" />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {aiResults && !aiSearching && (
+        <AiSearchResults
+          response={aiResults}
+          query={aiQuery}
+          onClose={handleAiClose}
+          sectionRef={aiSectionRef}
+        />
+      )}
+
+      {/* Results count — only show when AI is not active */}
+      {!aiResults && !isLoading && meta && (
         <p className="text-xs text-baza-text-secondary">
           {isFetching ? 'Updating...' : `${meta.totalItems} listing${meta.totalItems !== 1 ? 's' : ''} found`}
         </p>
       )}
 
-      {/* Listings Grid */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <Skeleton key={i} className="h-64 rounded-2xl" />
-          ))}
-        </div>
-      ) : listings.length > 0 ? (
-        <>
+      {/* Listings Grid — only show when AI is not active */}
+      {!aiResults && (
+        isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {listings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
+            {Array.from({ length: 12 }).map((_, i) => (
+              <Skeleton key={i} className="h-64 rounded-2xl" />
             ))}
           </div>
-
-          {/* Pagination */}
-          {meta && meta.totalPages > 1 && (
-            <div className="flex justify-center pt-4">
-              <Pagination
-                currentPage={meta.currentPage}
-                totalPages={meta.totalPages}
-                onPageChange={(p) =>
-                  setSearchParams((prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.set('page', String(p));
-                    return next;
-                  })
-                }
-              />
+        ) : listings.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {listings.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
             </div>
-          )}
-        </>
-      ) : (
-        <EmptyState
-          title="No listings found"
-          description="Try adjusting your search criteria or clear active filters to see more listings."
-          actionLabel="Clear All Filters"
-          onAction={clearFilters}
-        />
+
+            {/* Pagination */}
+            {meta && meta.totalPages > 1 && (
+              <div className="flex justify-center pt-4">
+                <Pagination
+                  currentPage={meta.currentPage}
+                  totalPages={meta.totalPages}
+                  onPageChange={(p) =>
+                    setSearchParams((prev) => {
+                      const next = new URLSearchParams(prev);
+                      next.set('page', String(p));
+                      return next;
+                    })
+                  }
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <EmptyState
+            title="No listings found"
+            description="Try adjusting your search criteria or clear active filters to see more listings."
+            actionLabel="Clear All Filters"
+            onAction={clearFilters}
+          />
+        )
       )}
     </div>
   );

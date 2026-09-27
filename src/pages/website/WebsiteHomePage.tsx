@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Building2, MapPin, Car, ShieldCheck, Search } from 'lucide-react';
+import { ArrowRight, Building2, MapPin, Car, ShieldCheck } from 'lucide-react';
 import listingsService from '../../services/listingsService';
 import type { ListingItem } from '../../types';
+import { AiSearchBar } from '../../components/ai/AiSearchBar';
+import { AiSearchResults } from '../../components/ai/AiSearchResults';
+import type { AiSearchResponse } from '../../services/aiSearchService';
 
 /* ── Single purposeful animation — the hero line growing in ── */
 const PAGE_STYLES = `
@@ -48,7 +51,26 @@ const CATEGORY_ROWS = [
 export const WebsiteHomePage: React.FC = () => {
   const [listings, setListings]     = useState<ListingItem[]>([]);
   const [loadingListings, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+
+  // ── Sarah AI search state ──────────────────────────────────────────────
+  const [aiResults, setAiResults] = useState<AiSearchResponse | null>(null);
+  const [aiSearching, setAiSearching] = useState(false);
+  const [aiQuery, setAiQuery] = useState('');
+  const aiResultsRef = useRef<HTMLElement>(null);
+
+  const handleAiResults = (res: AiSearchResponse | null) => {
+    setAiResults(res);
+    if (res) {
+      setTimeout(() => {
+        aiResultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    }
+  };
+
+  const handleAiClose = () => {
+    setAiResults(null);
+    setAiQuery('');
+  };
 
   useEffect(() => {
     listingsService
@@ -57,13 +79,6 @@ export const WebsiteHomePage: React.FC = () => {
       .catch(() => setListings([]))
       .finally(() => setLoading(false));
   }, []);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      window.location.href = `/marketplace?search=${encodeURIComponent(searchQuery.trim())}`;
-    }
-  };
 
   return (
     <>
@@ -110,30 +125,12 @@ export const WebsiteHomePage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Search */}
-              <form onSubmit={handleSearch}>
-                <div
-                  className="flex items-center gap-0 rounded-lg overflow-hidden"
-                  style={{ background: 'rgba(255,255,255,0.97)', boxShadow: '0 4px 24px rgba(13,30,44,0.28)' }}
-                >
-                  <Search className="w-5 h-5 ml-4 flex-shrink-0" style={{ color: '#8A9099' }} aria-hidden />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="House in Kanombe, plot in Bugesera, Vitara…"
-                    className="flex-1 px-3 py-3.5 text-sm text-slate-800 bg-transparent border-none outline-none placeholder:text-slate-400"
-                    style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}
-                  />
-                  <button
-                    type="submit"
-                    className="px-5 py-3.5 text-sm font-bold text-white flex-shrink-0 focus:outline-none"
-                    style={{ background: '#C17D2E', fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif' }}
-                  >
-                    Search
-                  </button>
-                </div>
-              </form>
+              {/* Sarah AI Search */}
+              <AiSearchBar
+                onResults={handleAiResults}
+                onSearching={setAiSearching}
+                onQueryChange={setAiQuery}
+              />
 
               {/* Five provinces — ground it geographically */}
               <div className="flex flex-wrap gap-2">
@@ -215,6 +212,36 @@ export const WebsiteHomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* ── Sarah AI results — inline below hero ── */}
+      {aiSearching && (
+        <div style={{ background: '#EDEBE5', padding: '40px 0' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="ai-rs-skeleton-header mb-6">
+              <div className="ai-rs-skeleton-bar ai-rs-skeleton-bar--wide" />
+              <div className="ai-rs-skeleton-bar ai-rs-skeleton-bar--narrow" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-64 rounded-lg animate-pulse" style={{ background: '#D4CFC7' }} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {aiResults && !aiSearching && (
+        <div style={{ background: '#EDEBE5', padding: '40px 0' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <AiSearchResults
+              response={aiResults}
+              query={aiQuery}
+              onClose={handleAiClose}
+              sectionRef={aiResultsRef}
+            />
+          </div>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════
           LIVE LISTINGS — real product value, not decorative chrome.
