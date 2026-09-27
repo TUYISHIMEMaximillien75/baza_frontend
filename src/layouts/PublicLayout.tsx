@@ -32,7 +32,7 @@ export const PublicLayout: React.FC = () => {
                   className="text-xl font-black text-white tracking-tight"
                   style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif', letterSpacing: '-0.03em' }}
                 >
-                  BAZA<span style={{ color: '#06B6D4' }}>.rw</span>
+                  Baza
                 </span>
               </div>
               <p className="text-sm leading-relaxed mb-5" style={{ color: 'rgba(255,255,255,0.5)' }}>

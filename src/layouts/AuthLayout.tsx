@@ -32,7 +32,7 @@ export const AuthLayout: React.FC = () => {
               className="text-3xl font-black text-white tracking-tight"
               style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif', letterSpacing: '-0.04em' }}
             >
-              BAZA<span style={{ color: '#06B6D4' }}>.rw</span>
+              Baza
             </div>
             <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>
               Rwanda's Trusted Real Estate &amp; Vehicle Marketplace

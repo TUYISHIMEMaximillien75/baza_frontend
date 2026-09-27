@@ -41,7 +41,7 @@ export const WebsiteHeader: React.FC = () => {
               className="font-bold text-base text-white tracking-tight"
               style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif', letterSpacing: '-0.02em' }}
             >
-              BAZA<span style={{ color: '#06B6D4' }}>.rw</span>
+              Baza
             </span>
           </Link>
 

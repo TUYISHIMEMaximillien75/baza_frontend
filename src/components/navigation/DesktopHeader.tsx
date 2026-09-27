@@ -77,7 +77,7 @@ export const DesktopHeader: React.FC = () => {
               className="text-white font-bold text-base tracking-tight"
               style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif', letterSpacing: '-0.02em' }}
             >
-              BAZA<span style={{ color: '#06B6D4' }}>.rw</span>
+              Baza
             </span>
           </Link>
 
